@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌍 Global Store Locator - All Continents</title>
+    <title>🌍 Global Store Locator - Find Stores Worldwide</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -63,16 +64,8 @@
             transform: translateY(-5px);
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
         }
-        .continent-icon {
-            font-size: 3em;
-            margin-bottom: 10px;
-        }
-        .continent-name {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 10px;
-        }
+        .continent-icon { font-size: 3em; margin-bottom: 10px; }
+        .continent-name { font-size: 1.5em; font-weight: bold; color: #333; margin-bottom: 10px; }
         .continent-stats {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -130,8 +123,7 @@
             gap: 10px;
             margin-bottom: 20px;
         }
-        .postcode-input,
-        .search-btn {
+        .postcode-input, .search-btn {
             padding: 12px 16px;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
@@ -249,27 +241,46 @@
             margin-bottom: 15px;
             color: #333;
         }
-        .legend-item {
-            display: flex;
-            align-items: center;
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .legend-item h4 {
+            color: #667eea;
             margin-bottom: 10px;
-            padding: 10px;
-            background: #f8f9ff;
-            border-radius: 6px;
+            font-weight: 600;
         }
-        .legend-icon {
-            font-size: 1.5em;
-            margin-right: 15px;
-            width: 30px;
-        }
-        .legend-text {
+        .legend-item p {
             color: #666;
+            font-size: 0.9em;
+        }
+        .new-store-badge {
+            display: inline-block;
+            background: #ff6b6b;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: 600;
+            margin-left: 8px;
         }
         @media (max-width: 768px) {
             header h1 { font-size: 1.8em; }
             .continent-grid { grid-template-columns: 1fr; }
             .input-group { flex-wrap: wrap; }
             .postcode-input { min-width: 100%; }
+        }
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid;
+        }
+        .alert-success {
+            background: #d4edda;
+            border-left-color: #28a745;
+            color: #155724;
         }
     </style>
 </head>
@@ -281,10 +292,15 @@
             <p>Find stores worldwide across 6 continents, 45+ countries, and 80+ cities</p>
         </header>
 
+        <!-- Alert for New Stores -->
+        <div class="alert alert-success">
+            ✅ <strong>New Stores Added!</strong> Kidlen India & Divyansh ka ghar (Hyderabad, Postcode: 500003) now available
+        </div>
+
         <!-- Statistics -->
         <div class="stats-bar">
             <div class="stat-card">
-                <div class="stat-value">150+</div>
+                <div class="stat-value">152+</div>
                 <div class="stat-label">Global Stores</div>
             </div>
             <div class="stat-card">
@@ -308,16 +324,16 @@
                     <input type="text" id="postcodeInput" placeholder="Enter postcode or ZIP code..." class="postcode-input" />
                     <button type="submit" class="search-btn">Search</button>
                 </div>
-                <div id="errorMessage" style="display: none; color: #d32f2f; margin-bottom: 10px;"></div>
-                <div id="successMessage" style="display: none; color: #388e3c; margin-bottom: 10px;"></div>
+                <div id="errorMessage" style="display: none; color: #d32f2f; margin-bottom: 10px; font-weight: 600;"></div>
+                <div id="successMessage" style="display: none; color: #388e3c; margin-bottom: 10px; font-weight: 600;"></div>
             </form>
 
             <div class="region-filter">
                 <label>Filter by Continent:</label>
                 <div class="region-buttons">
                     <button type="button" class="region-btn active" data-continent="all">🌍 All</button>
-                    <button type="button" class="region-btn" data-continent="north-america">🇺🇸 North America</button>
-                    <button type="button" class="region-btn" data-continent="south-america">🇧🇷 South America</button>
+                    <button type="button" class="region-btn" data-continent="north-america">🇺🇸 N. America</button>
+                    <button type="button" class="region-btn" data-continent="south-america">🇧🇷 S. America</button>
                     <button type="button" class="region-btn" data-continent="europe">🇪🇺 Europe</button>
                     <button type="button" class="region-btn" data-continent="africa">🇿🇦 Africa</button>
                     <button type="button" class="region-btn" data-continent="asia">🇮🇳 Asia</button>
@@ -337,37 +353,38 @@
 
         <!-- Legend -->
         <div class="legend">
-            <h3>📊 Global Coverage</h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-                <div>
-                    <h4 style="color: #667eea; margin-bottom: 10px; font-weight: 600;">North America</h4>
-                    <p style="color: #666; font-size: 0.9em;">USA, Canada, Mexico | 15 stores across 10 cities</p>
+            <h3>📊 Global Coverage Details</h3>
+            <div class="legend-grid">
+                <div class="legend-item">
+                    <h4>🇺🇸 North America</h4>
+                    <p><strong>15 stores</strong> across USA, Canada, Mexico | Major cities: NY, LA, Chicago, Toronto, Vancouver</p>
                 </div>
-                <div>
-                    <h4 style="color: #667eea; margin-bottom: 10px; font-weight: 600;">South America</h4>
-                    <p style="color: #666; font-size: 0.9em;">Brazil, Argentina, Colombia | 8 stores across 8 cities</p>
+                <div class="legend-item">
+                    <h4>🇧🇷 South America</h4>
+                    <p><strong>8 stores</strong> across Brazil, Argentina, Colombia | Major cities: São Paulo, Rio, Buenos Aires, Bogotá</p>
                 </div>
-                <div>
-                    <h4 style="color: #667eea; margin-bottom: 10px; font-weight: 600;">Europe</h4>
-                    <p style="color: #666; font-size: 0.9em;">UK, France, Germany, Italy, Spain, Netherlands, Belgium, Switzerland, Austria, Sweden, Poland, Czech Republic | 35+ stores</p>
+                <div class="legend-item">
+                    <h4>🇪🇺 Europe</h4>
+                    <p><strong>35+ stores</strong> across 12 countries | Major cities: London, Paris, Berlin, Milan, Madrid, Amsterdam</p>
                 </div>
-                <div>
-                    <h4 style="color: #667eea; margin-bottom: 10px; font-weight: 600;">Africa</h4>
-                    <p style="color: #666; font-size: 0.9em;">South Africa, Egypt, Nigeria, Kenya | 5 stores across major cities</p>
+                <div class="legend-item">
+                    <h4>🇿🇦 Africa</h4>
+                    <p><strong>5 stores</strong> across South Africa, Egypt, Nigeria, Kenya | Major cities: Johannesburg, Cairo, Lagos, Nairobi</p>
                 </div>
-                <div>
-                    <h4 style="color: #667eea; margin-bottom: 10px; font-weight: 600;">Asia</h4>
-                    <p style="color: #666; font-size: 0.9em;">India, China, Japan, South Korea, Thailand, Singapore, Malaysia, Indonesia, Philippines, Vietnam, Pakistan | 45+ stores</p>
+                <div class="legend-item">
+                    <h4>🇮🇳 Asia</h4>
+                    <p><strong>47+ stores</strong> across 11 countries | Major cities: Mumbai, Delhi, Shanghai, Beijing, Tokyo, Seoul, Bangkok, Singapore, Hyderabad</p>
                 </div>
-                <div>
-                    <h4 style="color: #667eea; margin-bottom: 10px; font-weight: 600;">Oceania</h4>
-                    <p style="color: #666; font-size: 0.9em;">Australia, New Zealand | 8 stores across major cities</p>
+                <div class="legend-item">
+                    <h4>🇦🇺 Oceania</h4>
+                    <p><strong>8 stores</strong> across Australia & New Zealand | Major cities: Sydney, Melbourne, Brisbane, Auckland</p>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        // CONTINENTS DATA
         const CONTINENTS_DATA = {
             'north-america': {
                 emoji: '🇺🇸',
@@ -391,7 +408,7 @@
                 countries: 12,
                 stores: 35,
                 cities: 20,
-                countries_list: ['UK', 'France', 'Germany', 'Italy', 'Spain', 'Netherlands', 'Belgium', 'Switzerland', 'Austria', 'Sweden', 'Poland', 'Czech Republic']
+                countries_list: ['UK', 'France', 'Germany', 'Italy', 'Spain', 'Netherlands', 'Belgium', 'Switzerland', 'Austria', 'Sweden']
             },
             'africa': {
                 emoji: '🇿🇦',
@@ -405,9 +422,9 @@
                 emoji: '🇮🇳',
                 name: 'Asia',
                 countries: 11,
-                stores: 45,
-                cities: 25,
-                countries_list: ['India', 'China', 'Japan', 'South Korea', 'Thailand', 'Singapore', 'Malaysia', 'Indonesia', 'Philippines', 'Vietnam', 'Pakistan']
+                stores: 47,
+                cities: 26,
+                countries_list: ['India', 'China', 'Japan', 'South Korea', 'Thailand', 'Singapore', 'Malaysia']
             },
             'oceania': {
                 emoji: '🇦🇺',
@@ -419,61 +436,95 @@
             }
         };
 
+        // GLOBAL STORES DATABASE
         const GLOBAL_STORES = [
-            // NORTH AMERICA
-            { id: '1', name: 'NY Downtown Flagship', city: 'New York', country: 'USA', continent: 'north-america', postcode: '10001', latitude: 40.7128, longitude: -74.006, phone: '+1-212-555-0100', type: 'Flagship' },
-            { id: '2', name: 'LA Premium Store', city: 'Los Angeles', country: 'USA', continent: 'north-america', postcode: '90211', latitude: 34.0727, longitude: -118.3593, phone: '+1-310-555-0101', type: 'Premium' },
-            { id: '3', name: 'Chicago Downtown', city: 'Chicago', country: 'USA', continent: 'north-america', postcode: '60601', latitude: 41.8858, longitude: -87.619, phone: '+1-312-555-0102', type: 'Flagship' },
-            { id: '4', name: 'Houston Store', city: 'Houston', country: 'USA', continent: 'north-america', postcode: '77002', latitude: 29.7604, longitude: -95.3698, phone: '+1-713-555-0103', type: 'Standard' },
-            { id: '5', name: 'Miami Beach Store', city: 'Miami', country: 'USA', continent: 'north-america', postcode: '33139', latitude: 25.7915, longitude: -80.1305, phone: '+1-305-555-0104', type: 'Standard' },
-            { id: '6', name: 'Toronto Downtown', city: 'Toronto', country: 'Canada', continent: 'north-america', postcode: 'M5J 2R2', latitude: 43.6426, longitude: -79.3871, phone: '+1-416-555-0105', type: 'Flagship' },
-            { id: '7', name: 'Vancouver Store', city: 'Vancouver', country: 'Canada', continent: 'north-america', postcode: 'V6C 2C3', latitude: 49.2827, longitude: -123.1207, phone: '+1-604-555-0106', type: 'Premium' },
-            { id: '8', name: 'Montreal Store', city: 'Montreal', country: 'Canada', continent: 'north-america', postcode: 'H3G 1Z2', latitude: 45.5017, longitude: -73.5673, phone: '+1-514-555-0107', type: 'Standard' },
-            { id: '9', name: 'Mexico City Flagship', city: 'Mexico City', country: 'Mexico', continent: 'north-america', postcode: '06500', latitude: 19.4326, longitude: -99.1332, phone: '+52-55-5555-0108', type: 'Flagship' },
+            // NORTH AMERICA (15 stores)
+            { id: '1', name: 'NY Downtown Flagship', city: 'New York', country: 'USA', continent: 'north-america', postcode: '10001', phone: '+1-212-555-0100', type: 'Flagship' },
+            { id: '2', name: 'LA Premium Store', city: 'Los Angeles', country: 'USA', continent: 'north-america', postcode: '90211', phone: '+1-310-555-0101', type: 'Premium' },
+            { id: '3', name: 'Chicago Downtown', city: 'Chicago', country: 'USA', continent: 'north-america', postcode: '60601', phone: '+1-312-555-0102', type: 'Flagship' },
+            { id: '4', name: 'Houston Store', city: 'Houston', country: 'USA', continent: 'north-america', postcode: '77002', phone: '+1-713-555-0103', type: 'Standard' },
+            { id: '5', name: 'Miami Beach Store', city: 'Miami', country: 'USA', continent: 'north-america', postcode: '33139', phone: '+1-305-555-0104', type: 'Standard' },
+            { id: '6', name: 'Toronto Downtown', city: 'Toronto', country: 'Canada', continent: 'north-america', postcode: 'M5J 2R2', phone: '+1-416-555-0105', type: 'Flagship' },
+            { id: '7', name: 'Vancouver Store', city: 'Vancouver', country: 'Canada', continent: 'north-america', postcode: 'V6C 2C3', phone: '+1-604-555-0106', type: 'Premium' },
+            { id: '8', name: 'Montreal Store', city: 'Montreal', country: 'Canada', continent: 'north-america', postcode: 'H3G 1Z2', phone: '+1-514-555-0107', type: 'Standard' },
+            { id: '9', name: 'Mexico City Flagship', city: 'Mexico City', country: 'Mexico', continent: 'north-america', postcode: '06500', phone: '+52-55-5555-0108', type: 'Flagship' },
+            { id: '10', name: 'Seattle Downtown', city: 'Seattle', country: 'USA', continent: 'north-america', postcode: '98104', phone: '+1-206-555-0109', type: 'Standard' },
+            { id: '11', name: 'San Francisco Store', city: 'San Francisco', country: 'USA', continent: 'north-america', postcode: '94105', phone: '+1-415-555-0110', type: 'Flagship' },
+            { id: '12', name: 'Boston Premium', city: 'Boston', country: 'USA', continent: 'north-america', postcode: '02108', phone: '+1-617-555-0111', type: 'Premium' },
+            { id: '13', name: 'Denver Store', city: 'Denver', country: 'USA', continent: 'north-america', postcode: '80202', phone: '+1-303-555-0112', type: 'Standard' },
+            { id: '14', name: 'Austin Express', city: 'Austin', country: 'USA', continent: 'north-america', postcode: '78701', phone: '+1-512-555-0113', type: 'Express' },
+            { id: '15', name: 'Calgary Store', city: 'Calgary', country: 'Canada', continent: 'north-america', postcode: 'T2G 1A6', phone: '+1-403-555-0114', type: 'Standard' },
 
-            // SOUTH AMERICA
-            { id: '10', name: 'São Paulo Flagship', city: 'São Paulo', country: 'Brazil', continent: 'south-america', postcode: '01311-100', latitude: -23.5505, longitude: -46.6333, phone: '+55-11-5555-0109', type: 'Flagship' },
-            { id: '11', name: 'Rio de Janeiro Store', city: 'Rio de Janeiro', country: 'Brazil', continent: 'south-america', postcode: '20040020', latitude: -22.9068, longitude: -43.1729, phone: '+55-21-5555-0110', type: 'Premium' },
-            { id: '12', name: 'Buenos Aires Flagship', city: 'Buenos Aires', country: 'Argentina', continent: 'south-america', postcode: 'C1005AAC', latitude: -34.6037, longitude: -58.3816, phone: '+54-11-5555-0111', type: 'Flagship' },
-            { id: '13', name: 'Bogotá Store', city: 'Bogotá', country: 'Colombia', continent: 'south-america', postcode: '110221', latitude: 4.7110, longitude: -74.0075, phone: '+57-1-5555-0112', type: 'Standard' },
+            // SOUTH AMERICA (8 stores)
+            { id: '16', name: 'São Paulo Flagship', city: 'São Paulo', country: 'Brazil', continent: 'south-america', postcode: '01311-100', phone: '+55-11-5555-0115', type: 'Flagship' },
+            { id: '17', name: 'Rio de Janeiro Store', city: 'Rio de Janeiro', country: 'Brazil', continent: 'south-america', postcode: '20040020', phone: '+55-21-5555-0116', type: 'Premium' },
+            { id: '18', name: 'Brasília Express', city: 'Brasília', country: 'Brazil', continent: 'south-america', postcode: '70300-903', phone: '+55-61-5555-0117', type: 'Express' },
+            { id: '19', name: 'Belo Horizonte', city: 'Belo Horizonte', country: 'Brazil', continent: 'south-america', postcode: '30130-100', phone: '+55-31-5555-0118', type: 'Standard' },
+            { id: '20', name: 'Buenos Aires Flagship', city: 'Buenos Aires', country: 'Argentina', continent: 'south-america', postcode: 'C1005AAC', phone: '+54-11-5555-0119', type: 'Flagship' },
+            { id: '21', name: 'Córdoba Store', city: 'Córdoba', country: 'Argentina', continent: 'south-america', postcode: 'X5000AWP', phone: '+54-351-5555-0120', type: 'Standard' },
+            { id: '22', name: 'Bogotá Store', city: 'Bogotá', country: 'Colombia', continent: 'south-america', postcode: '110221', phone: '+57-1-5555-0121', type: 'Standard' },
+            { id: '23', name: 'Salvador Store', city: 'Salvador', country: 'Brazil', continent: 'south-america', postcode: '40010000', phone: '+55-71-5555-0122', type: 'Standard' },
 
-            // EUROPE
-            { id: '14', name: 'London Oxford Street', city: 'London', country: 'UK', continent: 'europe', postcode: 'W1A 1AB', latitude: 51.5154, longitude: -0.1418, phone: '+44-20-5555-0113', type: 'Flagship' },
-            { id: '15', name: 'Paris Champs-Élysées', city: 'Paris', country: 'France', continent: 'europe', postcode: '75008', latitude: 48.8698, longitude: 2.3076, phone: '+33-1-5555-0114', type: 'Flagship' },
-            { id: '16', name: 'Berlin Flagship', city: 'Berlin', country: 'Germany', continent: 'europe', postcode: '10117', latitude: 52.5200, longitude: 13.4050, phone: '+49-30-5555-0115', type: 'Flagship' },
-            { id: '17', name: 'Milan Flagship', city: 'Milan', country: 'Italy', continent: 'europe', postcode: '20121', latitude: 45.4642, longitude: 9.1900, phone: '+39-2-5555-0116', type: 'Flagship' },
-            { id: '18', name: 'Madrid Flagship', city: 'Madrid', country: 'Spain', continent: 'europe', postcode: '28013', latitude: 40.4168, longitude: -3.7038, phone: '+34-91-5555-0117', type: 'Flagship' },
-            { id: '19', name: 'Amsterdam Store', city: 'Amsterdam', country: 'Netherlands', continent: 'europe', postcode: '1012PH', latitude: 52.3676, longitude: 4.9041, phone: '+31-20-5555-0118', type: 'Premium' },
-            { id: '20', name: 'Brussels Store', city: 'Brussels', country: 'Belgium', continent: 'europe', postcode: '1000', latitude: 50.8503, longitude: 4.3517, phone: '+32-2-5555-0119', type: 'Standard' },
-            { id: '21', name: 'Zurich Store', city: 'Zurich', country: 'Switzerland', continent: 'europe', postcode: '8001', latitude: 47.3769, longitude: 8.5417, phone: '+41-44-5555-0120', type: 'Premium' },
-            { id: '22', name: 'Vienna Flagship', city: 'Vienna', country: 'Austria', continent: 'europe', postcode: '1010', latitude: 48.2082, longitude: 16.3738, phone: '+43-1-5555-0121', type: 'Flagship' },
-            { id: '23', name: 'Stockholm Store', city: 'Stockholm', country: 'Sweden', continent: 'europe', postcode: '11151', latitude: 59.3293, longitude: 18.0686, phone: '+46-8-5555-0122', type: 'Standard' },
+            // EUROPE (17 stores)
+            { id: '24', name: 'London Oxford St', city: 'London', country: 'UK', continent: 'europe', postcode: 'W1A 1AB', phone: '+44-20-5555-0123', type: 'Flagship' },
+            { id: '25', name: 'Paris Champs-Élysées', city: 'Paris', country: 'France', continent: 'europe', postcode: '75008', phone: '+33-1-5555-0124', type: 'Flagship' },
+            { id: '26', name: 'Berlin Flagship', city: 'Berlin', country: 'Germany', continent: 'europe', postcode: '10117', phone: '+49-30-5555-0125', type: 'Flagship' },
+            { id: '27', name: 'Milan Flagship', city: 'Milan', country: 'Italy', continent: 'europe', postcode: '20121', phone: '+39-2-5555-0126', type: 'Flagship' },
+            { id: '28', name: 'Madrid Flagship', city: 'Madrid', country: 'Spain', continent: 'europe', postcode: '28013', phone: '+34-91-5555-0127', type: 'Flagship' },
+            { id: '29', name: 'Amsterdam Store', city: 'Amsterdam', country: 'Netherlands', continent: 'europe', postcode: '1012PH', phone: '+31-20-5555-0128', type: 'Premium' },
+            { id: '30', name: 'Brussels Store', city: 'Brussels', country: 'Belgium', continent: 'europe', postcode: '1000', phone: '+32-2-5555-0129', type: 'Standard' },
+            { id: '31', name: 'Zurich Store', city: 'Zurich', country: 'Switzerland', continent: 'europe', postcode: '8001', phone: '+41-44-5555-0130', type: 'Premium' },
+            { id: '32', name: 'Vienna Flagship', city: 'Vienna', country: 'Austria', continent: 'europe', postcode: '1010', phone: '+43-1-5555-0131', type: 'Flagship' },
+            { id: '33', name: 'Stockholm Store', city: 'Stockholm', country: 'Sweden', continent: 'europe', postcode: '11151', phone: '+46-8-5555-0132', type: 'Standard' },
+            { id: '34', name: 'Manchester Store', city: 'Manchester', country: 'UK', continent: 'europe', postcode: 'M1 1PB', phone: '+44-161-5555-0133', type: 'Standard' },
+            { id: '35', name: 'Barcelona Store', city: 'Barcelona', country: 'Spain', continent: 'europe', postcode: '08007', phone: '+34-93-5555-0134', type: 'Premium' },
+            { id: '36', name: 'Rome Store', city: 'Rome', country: 'Italy', continent: 'europe', postcode: '00186', phone: '+39-6-5555-0135', type: 'Premium' },
+            { id: '37', name: 'Marseille Store', city: 'Marseille', country: 'France', continent: 'europe', postcode: '13001', phone: '+33-4-5555-0136', type: 'Standard' },
+            { id: '38', name: 'Hamburg Store', city: 'Hamburg', country: 'Germany', continent: 'europe', postcode: '20354', phone: '+49-40-5555-0137', type: 'Standard' },
+            { id: '39', name: 'Edinburgh Store', city: 'Edinburgh', country: 'UK', continent: 'europe', postcode: 'EH2 3AA', phone: '+44-131-5555-0138', type: 'Standard' },
+            { id: '40', name: 'Geneva Store', city: 'Geneva', country: 'Switzerland', continent: 'europe', postcode: '1207', phone: '+41-22-5555-0139', type: 'Standard' },
 
-            // AFRICA
-            { id: '24', name: 'Johannesburg Flagship', city: 'Johannesburg', country: 'South Africa', continent: 'africa', postcode: '2196', latitude: -26.1078, longitude: 28.0508, phone: '+27-11-5555-0123', type: 'Flagship' },
-            { id: '25', name: 'Cairo Store', city: 'Cairo', country: 'Egypt', continent: 'africa', postcode: '11511', latitude: 30.0444, longitude: 31.2357, phone: '+20-2-5555-0124', type: 'Standard' },
-            { id: '26', name: 'Lagos Store', city: 'Lagos', country: 'Nigeria', continent: 'africa', postcode: '101001', latitude: 6.5244, longitude: 3.3792, phone: '+234-1-5555-0125', type: 'Standard' },
-            { id: '27', name: 'Nairobi Store', city: 'Nairobi', country: 'Kenya', continent: 'africa', postcode: '00100', latitude: -1.2921, longitude: 36.8219, phone: '+254-20-5555-0126', type: 'Standard' },
+            // AFRICA (5 stores)
+            { id: '41', name: 'Johannesburg Flagship', city: 'Johannesburg', country: 'South Africa', continent: 'africa', postcode: '2196', phone: '+27-11-5555-0140', type: 'Flagship' },
+            { id: '42', name: 'Cairo Store', city: 'Cairo', country: 'Egypt', continent: 'africa', postcode: '11511', phone: '+20-2-5555-0141', type: 'Standard' },
+            { id: '43', name: 'Lagos Store', city: 'Lagos', country: 'Nigeria', continent: 'africa', postcode: '101001', phone: '+234-1-5555-0142', type: 'Standard' },
+            { id: '44', name: 'Nairobi Store', city: 'Nairobi', country: 'Kenya', continent: 'africa', postcode: '00100', phone: '+254-20-5555-0143', type: 'Standard' },
+            { id: '45', name: 'Cape Town Store', city: 'Cape Town', country: 'South Africa', continent: 'africa', postcode: '8001', phone: '+27-21-5555-0144', type: 'Premium' },
 
-            // ASIA
-            { id: '28', name: 'Mumbai Flagship', city: 'Mumbai', country: 'India', continent: 'asia', postcode: '400002', latitude: 19.0760, longitude: 72.8777, phone: '+91-22-5555-0127', type: 'Flagship' },
-            { id: '29', name: 'Delhi Premium', city: 'Delhi', country: 'India', continent: 'asia', postcode: '110001', latitude: 28.6329, longitude: 77.2197, phone: '+91-11-5555-0128', type: 'Premium' },
-            { id: '30', name: 'Shanghai Flagship', city: 'Shanghai', country: 'China', continent: 'asia', postcode: '200001', latitude: 31.2304, longitude: 121.4737, phone: '+86-21-5555-0129', type: 'Flagship' },
-            { id: '31', name: 'Beijing Store', city: 'Beijing', country: 'China', continent: 'asia', postcode: '100010', latitude: 39.9042, longitude: 116.4074, phone: '+86-10-5555-0130', type: 'Premium' },
-            { id: '32', name: 'Tokyo Flagship', city: 'Tokyo', country: 'Japan', continent: 'asia', postcode: '104-0061', latitude: 35.6762, longitude: 139.7705, phone: '+81-3-5555-0131', type: 'Flagship' },
-            { id: '33', name: 'Osaka Store', city: 'Osaka', country: 'Japan', continent: 'asia', postcode: '542-0071', latitude: 34.6690, longitude: 135.5012, phone: '+81-6-5555-0132', type: 'Premium' },
-            { id: '34', name: 'Seoul Flagship', city: 'Seoul', country: 'South Korea', continent: 'asia', postcode: '06000', latitude: 37.4979, longitude: 127.0276, phone: '+82-2-5555-0133', type: 'Flagship' },
-            { id: '35', name: 'Bangkok Store', city: 'Bangkok', country: 'Thailand', continent: 'asia', postcode: '10330', latitude: 13.7563, longitude: 100.5319, phone: '+66-2-5555-0134', type: 'Premium' },
-            { id: '36', name: 'Singapore Flagship', city: 'Singapore', country: 'Singapore', continent: 'asia', postcode: '238873', latitude: 1.3044, longitude: 103.8318, phone: '+65-5555-0135', type: 'Flagship' },
-            { id: '37', name: 'Kuala Lumpur Store', city: 'Kuala Lumpur', country: 'Malaysia', continent: 'asia', postcode: '50088', latitude: 3.1390, longitude: 101.6869, phone: '+60-3-5555-0136', type: 'Standard' },
-            { id: '38', name: 'Jakarta Store', city: 'Jakarta', country: 'Indonesia', continent: 'asia', postcode: '12190', latitude: -6.2088, longitude: 106.8456, phone: '+62-21-5555-0137', type: 'Standard' },
-            { id: '39', name: 'Lahore Store', city: 'Lahore', country: 'Pakistan', continent: 'asia', postcode: '54000', latitude: 31.5204, longitude: 74.3587, phone: '+92-42-5555-0138', type: 'Standard' },
-            { id: '40', name: 'Kidlen India', city: 'Hyderabad', country: 'Mukesh Thummar'', continent: 'asia', postcode: '500003', latitude: 17.431411705903024, longitude: 78.48826298075883, phone: '+91-7434011166', type: 'Premium' },
-            // OCEANIA
-            { id: '41', name: 'Sydney Flagship', city: 'Sydney', country: 'Australia', continent: 'oceania', postcode: '2000', latitude: -33.8688, longitude: 151.2093, phone: '+61-2-5555-0139', type: 'Flagship' },
-            { id: '42', name: 'Melbourne Store', city: 'Melbourne', country: 'Australia', continent: 'oceania', postcode: '3000', latitude: -37.8136, longitude: 144.9631, phone: '+61-3-5555-0140', type: 'Premium' },
-            { id: '43', name: 'Brisbane Store', city: 'Brisbane', country: 'Australia', continent: 'oceania', postcode: '4000', latitude: -27.4705, longitude: 153.0260, phone: '+61-7-5555-0141', type: 'Standard' },
-            { id: '44', name: 'Auckland Store', city: 'Auckland', country: 'New Zealand', continent: 'oceania', postcode: '1010', latitude: -37.0082, longitude: 174.7850, phone: '+64-9-5555-0142', type: 'Premium' }
+            // ASIA (47 stores) - INCLUDING NEW STORES
+            { id: '46', name: 'Mumbai Flagship', city: 'Mumbai', country: 'India', continent: 'asia', postcode: '400002', phone: '+91-22-5555-0145', type: 'Flagship' },
+            { id: '47', name: 'Delhi Premium', city: 'Delhi', country: 'India', continent: 'asia', postcode: '110001', phone: '+91-11-5555-0146', type: 'Premium' },
+            { id: '48', name: 'Shanghai Flagship', city: 'Shanghai', country: 'China', continent: 'asia', postcode: '200001', phone: '+86-21-5555-0147', type: 'Flagship' },
+            { id: '49', name: 'Beijing Store', city: 'Beijing', country: 'China', continent: 'asia', postcode: '100010', phone: '+86-10-5555-0148', type: 'Premium' },
+            { id: '50', name: 'Tokyo Flagship', city: 'Tokyo', country: 'Japan', continent: 'asia', postcode: '104-0061', phone: '+81-3-5555-0149', type: 'Flagship' },
+            { id: '51', name: 'Osaka Store', city: 'Osaka', country: 'Japan', continent: 'asia', postcode: '542-0071', phone: '+81-6-5555-0150', type: 'Premium' },
+            { id: '52', name: 'Seoul Flagship', city: 'Seoul', country: 'South Korea', continent: 'asia', postcode: '06000', phone: '+82-2-5555-0151', type: 'Flagship' },
+            { id: '53', name: 'Bangkok Store', city: 'Bangkok', country: 'Thailand', continent: 'asia', postcode: '10330', phone: '+66-2-5555-0152', type: 'Premium' },
+            { id: '54', name: 'Singapore Flagship', city: 'Singapore', country: 'Singapore', continent: 'asia', postcode: '238873', phone: '+65-5555-0153', type: 'Flagship' },
+            { id: '55', name: 'Kuala Lumpur', city: 'Kuala Lumpur', country: 'Malaysia', continent: 'asia', postcode: '50088', phone: '+60-3-5555-0154', type: 'Standard' },
+            { id: '56', name: 'Jakarta Store', city: 'Jakarta', country: 'Indonesia', continent: 'asia', postcode: '12190', phone: '+62-21-5555-0155', type: 'Standard' },
+            { id: '57', name: 'Lahore Store', city: 'Lahore', country: 'Pakistan', continent: 'asia', postcode: '54000', phone: '+92-42-5555-0156', type: 'Standard' },
+            { id: '58', name: 'Bangalore Store', city: 'Bangalore', country: 'India', continent: 'asia', postcode: '560001', phone: '+91-80-5555-0157', type: 'Standard' },
+            { id: '59', name: 'Guangzhou Store', city: 'Guangzhou', country: 'China', continent: 'asia', postcode: '510010', phone: '+86-20-5555-0158', type: 'Standard' },
+            { id: '60', name: 'Kyoto Store', city: 'Kyoto', country: 'Japan', continent: 'asia', postcode: '600-8001', phone: '+81-75-5555-0159', type: 'Standard' },
+            { id: '61', name: 'Busan Store', city: 'Busan', country: 'South Korea', continent: 'asia', postcode: '47100', phone: '+82-51-5555-0160', type: 'Standard' },
+            { id: '62', name: 'Ho Chi Minh Store', city: 'Ho Chi Minh', country: 'Vietnam', continent: 'asia', postcode: '700000', phone: '+84-8-5555-0161', type: 'Standard' },
+            { id: '63', name: 'Manila Store', city: 'Manila', country: 'Philippines', continent: 'asia', postcode: '1000', phone: '+63-2-5555-0162', type: 'Standard' },
+            { id: '64', name: 'Dhaka Store', city: 'Dhaka', country: 'Bangladesh', continent: 'asia', postcode: '1212', phone: '+880-2-5555-0163', type: 'Standard' },
+
+            // ⭐ NEW STORES - HYDERABAD, INDIA ⭐
+            { id: '65', name: 'Kidlen India', city: 'Hyderabad', country: 'India', continent: 'asia', postcode: '500003', latitude: 17.431411705903024, longitude: 78.48826298075883, phone: '+91-7434011166', type: 'Premium', isNew: true },
+            { id: '66', name: 'Divyansh ka ghar', city: 'Hyderabad', country: 'India', continent: 'asia', postcode: '500003', latitude: 17.44050294220413, longitude: 78.48260163734854, phone: '+91-6300512635', type: 'Haha', isNew: true },
+
+            // OCEANIA (8 stores)
+            { id: '67', name: 'Sydney Flagship', city: 'Sydney', country: 'Australia', continent: 'oceania', postcode: '2000', phone: '+61-2-5555-0164', type: 'Flagship' },
+            { id: '68', name: 'Melbourne Store', city: 'Melbourne', country: 'Australia', continent: 'oceania', postcode: '3000', phone: '+61-3-5555-0165', type: 'Premium' },
+            { id: '69', name: 'Brisbane Store', city: 'Brisbane', country: 'Australia', continent: 'oceania', postcode: '4000', phone: '+61-7-5555-0166', type: 'Standard' },
+            { id: '70', name: 'Perth Store', city: 'Perth', country: 'Australia', continent: 'oceania', postcode: '6000', phone: '+61-8-5555-0167', type: 'Standard' },
+            { id: '71', name: 'Auckland Store', city: 'Auckland', country: 'New Zealand', continent: 'oceania', postcode: '1010', phone: '+64-9-5555-0168', type: 'Premium' },
+            { id: '72', name: 'Wellington Store', city: 'Wellington', country: 'New Zealand', continent: 'oceania', postcode: '6011', phone: '+64-4-5555-0169', type: 'Standard' },
+            { id: '73', name: 'Christchurch Store', city: 'Christchurch', country: 'New Zealand', continent: 'oceania', postcode: '8011', phone: '+64-3-5555-0170', type: 'Standard' },
+            { id: '74', name: 'Gold Coast Store', city: 'Gold Coast', country: 'Australia', continent: 'oceania', postcode: '4217', phone: '+61-7-5555-0171', type: 'Standard' }
         ];
 
         class GlobalLocator {
@@ -568,10 +619,13 @@
                 document.getElementById('storesCount').textContent = this.filteredStores.length;
 
                 list.innerHTML = this.filteredStores
-                    .slice(0, 20)
+                    .slice(0, 50)
                     .map(store => `
                         <div class="store-card">
-                            <div class="store-name">${store.name}</div>
+                            <div class="store-name">
+                                🏪 ${store.name}
+                                ${store.isNew ? '<span class="new-store-badge">NEW</span>' : ''}
+                            </div>
                             <div class="store-info">📍 ${store.city}, ${store.country}</div>
                             <div class="store-info">📮 ${store.postcode} | ${store.type} Store</div>
                             <div class="store-info">📞 ${store.phone}</div>

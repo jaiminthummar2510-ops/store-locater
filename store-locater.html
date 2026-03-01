@@ -3,136 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Store Locator - Find Nearest Stores</title>
+    <title>🌍 Global Store Locator - All Continents</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places,geometry"></script>
-
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-                sans-serif;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
+        .container { max-width: 1400px; margin: 0 auto; }
         header {
             text-align: center;
             color: white;
             margin-bottom: 30px;
-            animation: slideDown 0.6s ease-out;
         }
-
-        header h1 {
-            font-size: 2.5em;
+        header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        header p { font-size: 1.1em; opacity: 0.9; }
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+        .continent-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .continent-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .continent-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+        }
+        .continent-icon {
+            font-size: 3em;
             margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
         }
-
-        header p {
-            font-size: 1.1em;
-            opacity: 0.9;
+        .continent-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
         }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .main-content {
+        .continent-stats {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            animation: fadeIn 0.8s ease-out;
+            gap: 10px;
+            margin: 15px 0;
         }
-
-        @media (max-width: 1024px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
+        .stat-item {
+            background: #f8f9ff;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
         }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
+        .stat-item-value {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.3em;
         }
-
-        /* Search Section */
+        .stat-item-label {
+            font-size: 0.8em;
+            color: #666;
+        }
+        .countries-list {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .countries-list h4 {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .country-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .country-tag {
+            background: #f0f2f5;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            color: #667eea;
+            border: 1px solid #e8ebf5;
+        }
         .search-section {
             background: white;
             border-radius: 15px;
             padding: 30px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-            animation: slideUp 0.6s ease-out 0.1s both;
+            margin-bottom: 30px;
         }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .search-form {
-            margin-bottom: 20px;
-        }
-
         .input-group {
             display: flex;
             gap: 10px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
-
         .postcode-input,
-        .search-btn,
-        .location-btn {
+        .search-btn {
             padding: 12px 16px;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
             font-size: 1em;
-            transition: all 0.3s ease;
         }
-
         .postcode-input {
             flex: 1;
             border-color: #667eea;
         }
-
         .postcode-input:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
-
         .search-btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -140,170 +153,45 @@
             cursor: pointer;
             font-weight: 600;
             min-width: 120px;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s;
         }
-
-        .search-btn:hover:not(:disabled) {
+        .search-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
-
-        .search-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+        .region-filter {
+            margin-bottom: 20px;
         }
-
-        .location-btn {
-            background: white;
-            border: 2px solid #667eea;
-            color: #667eea;
-            cursor: pointer;
-            padding: 12px 16px;
-            font-size: 1.3em;
-            width: 48px;
-            height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .location-btn:hover {
-            background: #f5f7ff;
-        }
-
-        /* Recent Searches */
-        .recent-searches {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .recent-searches span {
+        .region-filter label {
             font-weight: 600;
-            color: #666;
-            font-size: 0.9em;
-        }
-
-        .recent-search-btn {
-            background: #f0f2f5;
-            border: 1px solid #ddd;
-            padding: 6px 12px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 0.85em;
-            color: #667eea;
-            transition: all 0.3s;
-        }
-
-        .recent-search-btn:hover {
-            background: #e8ebf5;
-            border-color: #667eea;
-        }
-
-        /* Filters */
-        .filters {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
-
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .filter-group label {
-            font-weight: 600;
-            margin-bottom: 6px;
+            margin-bottom: 12px;
+            display: block;
             color: #333;
-            font-size: 0.9em;
         }
-
-        .filter-group select,
-        .filter-group input[type="checkbox"] {
-            padding: 8px 12px;
-            border: 1px solid #e0e0e0;
-            border-radius: 6px;
-            font-size: 0.95em;
-        }
-
-        .filter-group select {
-            cursor: pointer;
-            transition: border-color 0.3s;
-        }
-
-        .filter-group select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .checkbox-wrapper {
-            display: flex;
-            align-items: center;
+        .region-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
             gap: 8px;
         }
-
-        .checkbox-wrapper input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-            accent-color: #667eea;
-        }
-
-        .checkbox-wrapper label {
-            margin: 0;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        /* View Toggle */
-        .view-toggle {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #e0e0e0;
-        }
-
-        .view-toggle button {
-            flex: 1;
+        .region-btn {
             padding: 10px;
             border: 2px solid #e0e0e0;
             background: white;
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
-            font-weight: 600;
+            font-size: 0.85em;
             transition: all 0.3s;
+            color: #666;
+            font-weight: 600;
         }
-
-        .view-toggle button.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .region-btn:hover {
+            border-color: #667eea;
+        }
+        .region-btn.active {
+            background: #667eea;
             color: white;
-            border-color: transparent;
+            border-color: #667eea;
         }
-
-        /* Results Section */
-        .results-section {
-            animation: slideUp 0.6s ease-out 0.2s both;
-        }
-
-        .map-container {
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-            height: 600px;
-        }
-
-        #map {
-            width: 100%;
-            height: 100%;
-        }
-
         .stores-list-container {
             background: white;
             border-radius: 15px;
@@ -312,381 +200,76 @@
             display: flex;
             flex-direction: column;
             max-height: 600px;
+            margin-top: 30px;
         }
-
         .stores-list-header {
             padding: 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             font-weight: 600;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
-
-        .stores-count {
-            font-size: 0.9em;
-            opacity: 0.9;
-        }
-
         .stores-list {
             overflow-y: auto;
             flex: 1;
         }
-
         .store-card {
             border-bottom: 1px solid #e0e0e0;
             padding: 15px 20px;
             cursor: pointer;
             transition: all 0.3s;
         }
-
         .store-card:hover {
             background: #f8f9ff;
             padding-left: 25px;
         }
-
-        .store-card.selected {
-            background: #f0f2f5;
-            border-left: 4px solid #667eea;
-        }
-
         .store-name {
             font-weight: 600;
             font-size: 1.05em;
             color: #333;
             margin-bottom: 5px;
         }
-
-        .store-distance {
-            color: #667eea;
-            font-weight: 600;
-            font-size: 0.95em;
-            margin-bottom: 5px;
-        }
-
-        .store-address {
+        .store-info {
             color: #666;
             font-size: 0.9em;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
         }
-
-        .store-meta {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.85em;
-            margin-bottom: 8px;
-        }
-
-        .open-status {
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-weight: 600;
-        }
-
-        .open-status.open {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .open-status.closed {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .store-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .action-btn {
-            flex: 1;
-            padding: 8px;
-            border: 1px solid #e0e0e0;
-            background: white;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.85em;
-            font-weight: 600;
-            transition: all 0.3s;
-            color: #667eea;
-        }
-
-        .action-btn:hover {
-            background: #f0f2f5;
-            border-color: #667eea;
-        }
-
-        /* Error & Loading States */
-        .error-message {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 15px 20px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            border-left: 4px solid #f5c6cb;
-            animation: shake 0.5s ease-in-out;
-        }
-
-        @keyframes shake {
-            0%, 100% {
-                transform: translateX(0);
-            }
-            25% {
-                transform: translateX(-10px);
-            }
-            75% {
-                transform: translateX(10px);
-            }
-        }
-
-        .success-message {
-            background: #d4edda;
-            color: #155724;
-            padding: 15px 20px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            border-left: 4px solid #c3e6cb;
-        }
-
-        .loading-spinner {
-            text-align: center;
-            padding: 20px;
-        }
-
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
         .no-results {
             text-align: center;
             padding: 40px 20px;
             color: #666;
         }
-
-        .no-results-icon {
-            font-size: 3em;
+        .legend {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            margin-top: 30px;
+        }
+        .legend h3 {
             margin-bottom: 15px;
+            color: #333;
         }
-
-        /* Store Details Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        .modal.open {
+        .legend-item {
             display: flex;
             align-items: center;
-            justify-content: center;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            position: relative;
-            animation: slideUp 0.3s ease-out;
-        }
-
-        .modal-close {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: none;
-            border: none;
-            font-size: 1.5em;
-            cursor: pointer;
-            color: #666;
-        }
-
-        .store-details h2 {
-            margin-bottom: 15px;
-            color: #333;
-        }
-
-        .detail-item {
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .detail-item:last-child {
-            border-bottom: none;
-        }
-
-        .detail-label {
-            font-weight: 600;
-            color: #667eea;
-            font-size: 0.9em;
-            margin-bottom: 5px;
-        }
-
-        .detail-value {
-            color: #333;
-            line-height: 1.6;
-        }
-
-        .hours-grid {
-            display: grid;
-            grid-template-columns: 100px 1fr;
-            gap: 10px;
-        }
-
-        .services-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .service-tag {
-            background: #f0f2f5;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            color: #667eea;
-        }
-
-        .modal-actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #e0e0e0;
-        }
-
-        .modal-btn {
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-
-        .modal-btn.primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .modal-btn.primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .modal-btn.secondary {
-            background: #f0f2f5;
-            color: #667eea;
-            border: 1px solid #e0e0e0;
-        }
-
-        .modal-btn.secondary:hover {
-            background: #e8ebf5;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            header h1 {
-                font-size: 1.8em;
-            }
-
-            .input-group {
-                flex-wrap: wrap;
-            }
-
-            .postcode-input {
-                min-width: 100%;
-            }
-
-            .filters {
-                grid-template-columns: 1fr 1fr;
-            }
-
-            .main-content {
-                gap: 15px;
-            }
-
-            .map-container,
-            .stores-list-container {
-                height: 400px;
-            }
-
-            .store-card {
-                padding: 12px 15px;
-            }
-
-            .modal-content {
-                padding: 20px;
-            }
-        }
-
-        /* Analytics Dashboard */
-        .analytics-section {
-            margin-top: 30px;
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-        }
-
-        .analytics-title {
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: #333;
-        }
-
-        .analytics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-        }
-
-        .analytics-card {
+            margin-bottom: 10px;
+            padding: 10px;
             background: #f8f9ff;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            border: 1px solid #e8ebf5;
+            border-radius: 6px;
         }
-
-        .analytics-value {
-            font-size: 1.8em;
-            font-weight: 600;
-            color: #667eea;
+        .legend-icon {
+            font-size: 1.5em;
+            margin-right: 15px;
+            width: 30px;
         }
-
-        .analytics-label {
-            font-size: 0.85em;
+        .legend-text {
             color: #666;
-            margin-top: 5px;
+        }
+        @media (max-width: 768px) {
+            header h1 { font-size: 1.8em; }
+            .continent-grid { grid-template-columns: 1fr; }
+            .input-group { flex-wrap: wrap; }
+            .postcode-input { min-width: 100%; }
         }
     </style>
 </head>
@@ -694,838 +277,310 @@
     <div class="container">
         <!-- Header -->
         <header>
-            <h1>🗺️ Store Locator</h1>
-            <p>Find the nearest store by postcode or ZIP code</p>
+            <h1>🌍 Global Store Locator</h1>
+            <p>Find stores worldwide across 6 continents, 45+ countries, and 80+ cities</p>
         </header>
 
-        <!-- Main Content -->
-        <div class="main-content">
-            <!-- Left Panel: Search & Filters -->
-            <div class="search-section">
-                <form class="search-form" id="searchForm">
-                    <div class="input-group">
-                        <input
-                            type="text"
-                            id="postcodeInput"
-                            placeholder="Enter postcode or ZIP code..."
-                            class="postcode-input"
-                            aria-label="Postcode input"
-                        />
-                        <button type="submit" class="search-btn" id="searchBtn">
-                            Search
-                        </button>
-                        <button type="button" class="location-btn" id="locationBtn" title="Use current location">
-                            📍
-                        </button>
-                    </div>
-
-                    <!-- Recent Searches -->
-                    <div id="recentSearchesContainer" style="display: none;">
-                        <div class="recent-searches">
-                            <span>Recent:</span>
-                            <div id="recentSearchesButtonsContainer"></div>
-                        </div>
-                    </div>
-
-                    <!-- Error Message -->
-                    <div id="errorMessage" class="error-message" style="display: none;"></div>
-
-                    <!-- Success Message -->
-                    <div id="successMessage" class="success-message" style="display: none;"></div>
-                </form>
-
-                <!-- Filters -->
-                <div class="filters">
-                    <div class="filter-group">
-                        <label for="radiusSelect">Search Radius:</label>
-                        <select id="radiusSelect">
-                            <option value="5">5 km</option>
-                            <option value="10" selected>10 km</option>
-                            <option value="25">25 km</option>
-                            <option value="50">50 km</option>
-                        </select>
-                    </div>
-
-                    <div class="filter-group">
-                        <label for="storeTypeSelect">Store Type:</label>
-                        <select id="storeTypeSelect">
-                            <option value="">All Types</option>
-                            <option value="flagship">Flagship Store</option>
-                            <option value="standard">Standard Store</option>
-                            <option value="express">Express Store</option>
-                        </select>
-                    </div>
-
-                    <div class="filter-group">
-                        <div class="checkbox-wrapper">
-                            <input type="checkbox" id="openNowCheckbox" />
-                            <label for="openNowCheckbox">Open Now</label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- View Toggle -->
-                <div class="view-toggle">
-                    <button id="listViewBtn" class="active">📋 List View</button>
-                    <button id="mapViewBtn">🗺️ Map View</button>
-                </div>
+        <!-- Statistics -->
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="stat-value">150+</div>
+                <div class="stat-label">Global Stores</div>
             </div>
+            <div class="stat-card">
+                <div class="stat-value">6</div>
+                <div class="stat-label">Continents</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">45+</div>
+                <div class="stat-label">Countries</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">80+</div>
+                <div class="stat-label">Cities</div>
+            </div>
+        </div>
 
-            <!-- Right Panel: Results -->
-            <div class="results-section">
-                <!-- Map Container -->
-                <div id="mapViewContainer" style="display: none;">
-                    <div class="map-container">
-                        <div id="map"></div>
-                    </div>
+        <!-- Search Section -->
+        <div class="search-section">
+            <form id="searchForm">
+                <div class="input-group">
+                    <input type="text" id="postcodeInput" placeholder="Enter postcode or ZIP code..." class="postcode-input" />
+                    <button type="submit" class="search-btn">Search</button>
                 </div>
+                <div id="errorMessage" style="display: none; color: #d32f2f; margin-bottom: 10px;"></div>
+                <div id="successMessage" style="display: none; color: #388e3c; margin-bottom: 10px;"></div>
+            </form>
 
-                <!-- Stores List -->
-                <div id="listViewContainer" class="stores-list-container">
-                    <div class="stores-list-header">
-                        <span>Nearby Stores</span>
-                        <span class="stores-count" id="storesCount">0 stores found</span>
-                    </div>
-                    <div class="stores-list" id="storesList">
-                        <div class="no-results">
-                            <div class="no-results-icon">🔍</div>
-                            <p>Search for a location to see nearby stores</p>
-                        </div>
-                    </div>
+            <div class="region-filter">
+                <label>Filter by Continent:</label>
+                <div class="region-buttons">
+                    <button type="button" class="region-btn active" data-continent="all">🌍 All</button>
+                    <button type="button" class="region-btn" data-continent="north-america">🇺🇸 North America</button>
+                    <button type="button" class="region-btn" data-continent="south-america">🇧🇷 South America</button>
+                    <button type="button" class="region-btn" data-continent="europe">🇪🇺 Europe</button>
+                    <button type="button" class="region-btn" data-continent="africa">🇿🇦 Africa</button>
+                    <button type="button" class="region-btn" data-continent="asia">🇮🇳 Asia</button>
+                    <button type="button" class="region-btn" data-continent="oceania">🇦🇺 Oceania</button>
                 </div>
             </div>
         </div>
 
-        <!-- Analytics Section -->
-        <div class="analytics-section" id="analyticsSection" style="display: none;">
-            <div class="analytics-title">📊 Search Analytics</div>
-            <div class="analytics-grid">
-                <div class="analytics-card">
-                    <div class="analytics-value" id="totalSearches">0</div>
-                    <div class="analytics-label">Total Searches</div>
+        <!-- Continent Cards -->
+        <div class="continent-grid" id="continentGrid"></div>
+
+        <!-- Stores List -->
+        <div class="stores-list-container" id="storesListContainer" style="display: none;">
+            <div class="stores-list-header">Global Stores - <span id="storesCount">0</span> Results</div>
+            <div class="stores-list" id="storesList"></div>
+        </div>
+
+        <!-- Legend -->
+        <div class="legend">
+            <h3>📊 Global Coverage</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                <div>
+                    <h4 style="color: #667eea; margin-bottom: 10px; font-weight: 600;">North America</h4>
+                    <p style="color: #666; font-size: 0.9em;">USA, Canada, Mexico | 15 stores across 10 cities</p>
                 </div>
-                <div class="analytics-card">
-                    <div class="analytics-value" id="totalViews">0</div>
-                    <div class="analytics-label">Store Views</div>
+                <div>
+                    <h4 style="color: #667eea; margin-bottom: 10px; font-weight: 600;">South America</h4>
+                    <p style="color: #666; font-size: 0.9em;">Brazil, Argentina, Colombia | 8 stores across 8 cities</p>
                 </div>
-                <div class="analytics-card">
-                    <div class="analytics-value" id="totalDirections">0</div>
-                    <div class="analytics-label">Directions Requested</div>
+                <div>
+                    <h4 style="color: #667eea; margin-bottom: 10px; font-weight: 600;">Europe</h4>
+                    <p style="color: #666; font-size: 0.9em;">UK, France, Germany, Italy, Spain, Netherlands, Belgium, Switzerland, Austria, Sweden, Poland, Czech Republic | 35+ stores</p>
                 </div>
-                <div class="analytics-card">
-                    <div class="analytics-value" id="totalCalls">0</div>
-                    <div class="analytics-label">Calls Made</div>
+                <div>
+                    <h4 style="color: #667eea; margin-bottom: 10px; font-weight: 600;">Africa</h4>
+                    <p style="color: #666; font-size: 0.9em;">South Africa, Egypt, Nigeria, Kenya | 5 stores across major cities</p>
+                </div>
+                <div>
+                    <h4 style="color: #667eea; margin-bottom: 10px; font-weight: 600;">Asia</h4>
+                    <p style="color: #666; font-size: 0.9em;">India, China, Japan, South Korea, Thailand, Singapore, Malaysia, Indonesia, Philippines, Vietnam, Pakistan | 45+ stores</p>
+                </div>
+                <div>
+                    <h4 style="color: #667eea; margin-bottom: 10px; font-weight: 600;">Oceania</h4>
+                    <p style="color: #666; font-size: 0.9em;">Australia, New Zealand | 8 stores across major cities</p>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Store Details Modal -->
-    <div id="storeModal" class="modal">
-        <div class="modal-content">
-            <button class="modal-close" id="modalClose">&times;</button>
-            <div id="storeDetailsContainer"></div>
         </div>
     </div>
 
     <script>
-        // ==========================================
-        // STORE LOCATOR APPLICATION
-        // ==========================================
+        const CONTINENTS_DATA = {
+            'north-america': {
+                emoji: '🇺🇸',
+                name: 'North America',
+                countries: 3,
+                stores: 15,
+                cities: 10,
+                countries_list: ['USA', 'Canada', 'Mexico']
+            },
+            'south-america': {
+                emoji: '🇧🇷',
+                name: 'South America',
+                countries: 3,
+                stores: 8,
+                cities: 8,
+                countries_list: ['Brazil', 'Argentina', 'Colombia']
+            },
+            'europe': {
+                emoji: '🇪🇺',
+                name: 'Europe',
+                countries: 12,
+                stores: 35,
+                cities: 20,
+                countries_list: ['UK', 'France', 'Germany', 'Italy', 'Spain', 'Netherlands', 'Belgium', 'Switzerland', 'Austria', 'Sweden', 'Poland', 'Czech Republic']
+            },
+            'africa': {
+                emoji: '🇿🇦',
+                name: 'Africa',
+                countries: 4,
+                stores: 5,
+                cities: 5,
+                countries_list: ['South Africa', 'Egypt', 'Nigeria', 'Kenya']
+            },
+            'asia': {
+                emoji: '🇮🇳',
+                name: 'Asia',
+                countries: 11,
+                stores: 45,
+                cities: 25,
+                countries_list: ['India', 'China', 'Japan', 'South Korea', 'Thailand', 'Singapore', 'Malaysia', 'Indonesia', 'Philippines', 'Vietnam', 'Pakistan']
+            },
+            'oceania': {
+                emoji: '🇦🇺',
+                name: 'Oceania',
+                countries: 2,
+                stores: 8,
+                cities: 5,
+                countries_list: ['Australia', 'New Zealand']
+            }
+        };
 
-        class StoreLocator {
+        const GLOBAL_STORES = [
+            // NORTH AMERICA
+            { id: '1', name: 'NY Downtown Flagship', city: 'New York', country: 'USA', continent: 'north-america', postcode: '10001', latitude: 40.7128, longitude: -74.006, phone: '+1-212-555-0100', type: 'Flagship' },
+            { id: '2', name: 'LA Premium Store', city: 'Los Angeles', country: 'USA', continent: 'north-america', postcode: '90211', latitude: 34.0727, longitude: -118.3593, phone: '+1-310-555-0101', type: 'Premium' },
+            { id: '3', name: 'Chicago Downtown', city: 'Chicago', country: 'USA', continent: 'north-america', postcode: '60601', latitude: 41.8858, longitude: -87.619, phone: '+1-312-555-0102', type: 'Flagship' },
+            { id: '4', name: 'Houston Store', city: 'Houston', country: 'USA', continent: 'north-america', postcode: '77002', latitude: 29.7604, longitude: -95.3698, phone: '+1-713-555-0103', type: 'Standard' },
+            { id: '5', name: 'Miami Beach Store', city: 'Miami', country: 'USA', continent: 'north-america', postcode: '33139', latitude: 25.7915, longitude: -80.1305, phone: '+1-305-555-0104', type: 'Standard' },
+            { id: '6', name: 'Toronto Downtown', city: 'Toronto', country: 'Canada', continent: 'north-america', postcode: 'M5J 2R2', latitude: 43.6426, longitude: -79.3871, phone: '+1-416-555-0105', type: 'Flagship' },
+            { id: '7', name: 'Vancouver Store', city: 'Vancouver', country: 'Canada', continent: 'north-america', postcode: 'V6C 2C3', latitude: 49.2827, longitude: -123.1207, phone: '+1-604-555-0106', type: 'Premium' },
+            { id: '8', name: 'Montreal Store', city: 'Montreal', country: 'Canada', continent: 'north-america', postcode: 'H3G 1Z2', latitude: 45.5017, longitude: -73.5673, phone: '+1-514-555-0107', type: 'Standard' },
+            { id: '9', name: 'Mexico City Flagship', city: 'Mexico City', country: 'Mexico', continent: 'north-america', postcode: '06500', latitude: 19.4326, longitude: -99.1332, phone: '+52-55-5555-0108', type: 'Flagship' },
+
+            // SOUTH AMERICA
+            { id: '10', name: 'São Paulo Flagship', city: 'São Paulo', country: 'Brazil', continent: 'south-america', postcode: '01311-100', latitude: -23.5505, longitude: -46.6333, phone: '+55-11-5555-0109', type: 'Flagship' },
+            { id: '11', name: 'Rio de Janeiro Store', city: 'Rio de Janeiro', country: 'Brazil', continent: 'south-america', postcode: '20040020', latitude: -22.9068, longitude: -43.1729, phone: '+55-21-5555-0110', type: 'Premium' },
+            { id: '12', name: 'Buenos Aires Flagship', city: 'Buenos Aires', country: 'Argentina', continent: 'south-america', postcode: 'C1005AAC', latitude: -34.6037, longitude: -58.3816, phone: '+54-11-5555-0111', type: 'Flagship' },
+            { id: '13', name: 'Bogotá Store', city: 'Bogotá', country: 'Colombia', continent: 'south-america', postcode: '110221', latitude: 4.7110, longitude: -74.0075, phone: '+57-1-5555-0112', type: 'Standard' },
+
+            // EUROPE
+            { id: '14', name: 'London Oxford Street', city: 'London', country: 'UK', continent: 'europe', postcode: 'W1A 1AB', latitude: 51.5154, longitude: -0.1418, phone: '+44-20-5555-0113', type: 'Flagship' },
+            { id: '15', name: 'Paris Champs-Élysées', city: 'Paris', country: 'France', continent: 'europe', postcode: '75008', latitude: 48.8698, longitude: 2.3076, phone: '+33-1-5555-0114', type: 'Flagship' },
+            { id: '16', name: 'Berlin Flagship', city: 'Berlin', country: 'Germany', continent: 'europe', postcode: '10117', latitude: 52.5200, longitude: 13.4050, phone: '+49-30-5555-0115', type: 'Flagship' },
+            { id: '17', name: 'Milan Flagship', city: 'Milan', country: 'Italy', continent: 'europe', postcode: '20121', latitude: 45.4642, longitude: 9.1900, phone: '+39-2-5555-0116', type: 'Flagship' },
+            { id: '18', name: 'Madrid Flagship', city: 'Madrid', country: 'Spain', continent: 'europe', postcode: '28013', latitude: 40.4168, longitude: -3.7038, phone: '+34-91-5555-0117', type: 'Flagship' },
+            { id: '19', name: 'Amsterdam Store', city: 'Amsterdam', country: 'Netherlands', continent: 'europe', postcode: '1012PH', latitude: 52.3676, longitude: 4.9041, phone: '+31-20-5555-0118', type: 'Premium' },
+            { id: '20', name: 'Brussels Store', city: 'Brussels', country: 'Belgium', continent: 'europe', postcode: '1000', latitude: 50.8503, longitude: 4.3517, phone: '+32-2-5555-0119', type: 'Standard' },
+            { id: '21', name: 'Zurich Store', city: 'Zurich', country: 'Switzerland', continent: 'europe', postcode: '8001', latitude: 47.3769, longitude: 8.5417, phone: '+41-44-5555-0120', type: 'Premium' },
+            { id: '22', name: 'Vienna Flagship', city: 'Vienna', country: 'Austria', continent: 'europe', postcode: '1010', latitude: 48.2082, longitude: 16.3738, phone: '+43-1-5555-0121', type: 'Flagship' },
+            { id: '23', name: 'Stockholm Store', city: 'Stockholm', country: 'Sweden', continent: 'europe', postcode: '11151', latitude: 59.3293, longitude: 18.0686, phone: '+46-8-5555-0122', type: 'Standard' },
+
+            // AFRICA
+            { id: '24', name: 'Johannesburg Flagship', city: 'Johannesburg', country: 'South Africa', continent: 'africa', postcode: '2196', latitude: -26.1078, longitude: 28.0508, phone: '+27-11-5555-0123', type: 'Flagship' },
+            { id: '25', name: 'Cairo Store', city: 'Cairo', country: 'Egypt', continent: 'africa', postcode: '11511', latitude: 30.0444, longitude: 31.2357, phone: '+20-2-5555-0124', type: 'Standard' },
+            { id: '26', name: 'Lagos Store', city: 'Lagos', country: 'Nigeria', continent: 'africa', postcode: '101001', latitude: 6.5244, longitude: 3.3792, phone: '+234-1-5555-0125', type: 'Standard' },
+            { id: '27', name: 'Nairobi Store', city: 'Nairobi', country: 'Kenya', continent: 'africa', postcode: '00100', latitude: -1.2921, longitude: 36.8219, phone: '+254-20-5555-0126', type: 'Standard' },
+
+            // ASIA
+            { id: '28', name: 'Mumbai Flagship', city: 'Mumbai', country: 'India', continent: 'asia', postcode: '400002', latitude: 19.0760, longitude: 72.8777, phone: '+91-22-5555-0127', type: 'Flagship' },
+            { id: '29', name: 'Delhi Premium', city: 'Delhi', country: 'India', continent: 'asia', postcode: '110001', latitude: 28.6329, longitude: 77.2197, phone: '+91-11-5555-0128', type: 'Premium' },
+            { id: '30', name: 'Shanghai Flagship', city: 'Shanghai', country: 'China', continent: 'asia', postcode: '200001', latitude: 31.2304, longitude: 121.4737, phone: '+86-21-5555-0129', type: 'Flagship' },
+            { id: '31', name: 'Beijing Store', city: 'Beijing', country: 'China', continent: 'asia', postcode: '100010', latitude: 39.9042, longitude: 116.4074, phone: '+86-10-5555-0130', type: 'Premium' },
+            { id: '32', name: 'Tokyo Flagship', city: 'Tokyo', country: 'Japan', continent: 'asia', postcode: '104-0061', latitude: 35.6762, longitude: 139.7705, phone: '+81-3-5555-0131', type: 'Flagship' },
+            { id: '33', name: 'Osaka Store', city: 'Osaka', country: 'Japan', continent: 'asia', postcode: '542-0071', latitude: 34.6690, longitude: 135.5012, phone: '+81-6-5555-0132', type: 'Premium' },
+            { id: '34', name: 'Seoul Flagship', city: 'Seoul', country: 'South Korea', continent: 'asia', postcode: '06000', latitude: 37.4979, longitude: 127.0276, phone: '+82-2-5555-0133', type: 'Flagship' },
+            { id: '35', name: 'Bangkok Store', city: 'Bangkok', country: 'Thailand', continent: 'asia', postcode: '10330', latitude: 13.7563, longitude: 100.5319, phone: '+66-2-5555-0134', type: 'Premium' },
+            { id: '36', name: 'Singapore Flagship', city: 'Singapore', country: 'Singapore', continent: 'asia', postcode: '238873', latitude: 1.3044, longitude: 103.8318, phone: '+65-5555-0135', type: 'Flagship' },
+            { id: '37', name: 'Kuala Lumpur Store', city: 'Kuala Lumpur', country: 'Malaysia', continent: 'asia', postcode: '50088', latitude: 3.1390, longitude: 101.6869, phone: '+60-3-5555-0136', type: 'Standard' },
+            { id: '38', name: 'Jakarta Store', city: 'Jakarta', country: 'Indonesia', continent: 'asia', postcode: '12190', latitude: -6.2088, longitude: 106.8456, phone: '+62-21-5555-0137', type: 'Standard' },
+            { id: '39', name: 'Lahore Store', city: 'Lahore', country: 'Pakistan', continent: 'asia', postcode: '54000', latitude: 31.5204, longitude: 74.3587, phone: '+92-42-5555-0138', type: 'Standard' },
+
+            // OCEANIA
+            { id: '40', name: 'Sydney Flagship', city: 'Sydney', country: 'Australia', continent: 'oceania', postcode: '2000', latitude: -33.8688, longitude: 151.2093, phone: '+61-2-5555-0139', type: 'Flagship' },
+            { id: '41', name: 'Melbourne Store', city: 'Melbourne', country: 'Australia', continent: 'oceania', postcode: '3000', latitude: -37.8136, longitude: 144.9631, phone: '+61-3-5555-0140', type: 'Premium' },
+            { id: '42', name: 'Brisbane Store', city: 'Brisbane', country: 'Australia', continent: 'oceania', postcode: '4000', latitude: -27.4705, longitude: 153.0260, phone: '+61-7-5555-0141', type: 'Standard' },
+            { id: '43', name: 'Auckland Store', city: 'Auckland', country: 'New Zealand', continent: 'oceania', postcode: '1010', latitude: -37.0082, longitude: 174.7850, phone: '+64-9-5555-0142', type: 'Premium' }
+        ];
+
+        class GlobalLocator {
             constructor() {
-                this.userLocation = null;
-                this.stores = [];
+                this.stores = GLOBAL_STORES;
                 this.filteredStores = [];
-                this.viewMode = 'list';
-                this.selectedStore = null;
-                this.map = null;
-                this.markers = [];
-                this.recentSearches = [];
-                this.analytics = {
-                    totalSearches: 0,
-                    totalViews: 0,
-                    totalDirections: 0,
-                    totalCalls: 0,
-                };
-
-                this.initializeUI();
-                this.loadLocalData();
-                this.generateMockData();
+                this.selectedContinent = 'all';
+                this.init();
             }
 
-            // Initialize UI Event Listeners
-            initializeUI() {
-                // Search
+            init() {
+                this.renderContinentCards();
+                this.setupEventListeners();
+            }
+
+            renderContinentCards() {
+                const grid = document.getElementById('continentGrid');
+                grid.innerHTML = Object.entries(CONTINENTS_DATA)
+                    .map(([key, data]) => `
+                        <div class="continent-card" onclick="locator.filterByContinent('${key}')">
+                            <div class="continent-icon">${data.emoji}</div>
+                            <div class="continent-name">${data.name}</div>
+                            <div class="continent-stats">
+                                <div class="stat-item">
+                                    <div class="stat-item-value">${data.stores}</div>
+                                    <div class="stat-item-label">Stores</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-item-value">${data.countries}</div>
+                                    <div class="stat-item-label">Countries</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-item-value">${data.cities}</div>
+                                    <div class="stat-item-label">Cities</div>
+                                </div>
+                            </div>
+                            <div class="countries-list">
+                                <h4>Featured Countries:</h4>
+                                <div class="country-tags">
+                                    ${data.countries_list.slice(0, 5).map(c => `<span class="country-tag">${c}</span>`).join('')}
+                                    ${data.countries_list.length > 5 ? `<span class="country-tag">+${data.countries_list.length - 5} more</span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+            }
+
+            setupEventListeners() {
                 document.getElementById('searchForm').addEventListener('submit', (e) => this.handleSearch(e));
-                document.getElementById('locationBtn').addEventListener('click', () => this.useCurrentLocation());
-
-                // Filters
-                document.getElementById('radiusSelect').addEventListener('change', () => this.applyFilters());
-                document.getElementById('storeTypeSelect').addEventListener('change', () => this.applyFilters());
-                document.getElementById('openNowCheckbox').addEventListener('change', () => this.applyFilters());
-
-                // View Toggle
-                document.getElementById('listViewBtn').addEventListener('click', () => this.switchView('list'));
-                document.getElementById('mapViewBtn').addEventListener('click', () => this.switchView('map'));
-
-                // Modal
-                document.getElementById('modalClose').addEventListener('click', () => this.closeModal());
-                document.getElementById('storeModal').addEventListener('click', (e) => {
-                    if (e.target.id === 'storeModal') this.closeModal();
+                document.querySelectorAll('[data-continent]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const continent = btn.dataset.continent;
+                        document.querySelectorAll('[data-continent]').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        this.filterByContinent(continent);
+                    });
                 });
             }
 
-            // Load Local Data
-            loadLocalData() {
-                const saved = localStorage.getItem('storeLocatorData');
-                if (saved) {
-                    const data = JSON.parse(saved);
-                    this.recentSearches = data.recentSearches || [];
-                    this.analytics = data.analytics || this.analytics;
-                    this.updateRecentSearches();
-                    this.updateAnalytics();
-                }
-            }
-
-            // Save Local Data
-            saveLocalData() {
-                const data = {
-                    recentSearches: this.recentSearches,
-                    analytics: this.analytics,
-                };
-                localStorage.setItem('storeLocatorData', JSON.stringify(data));
-            }
-
-            // Generate Mock Store Data
-            generateMockData() {
-                this.stores = [
-                    {
-                        id: '1',
-                        name: 'Downtown Flagship Store',
-                        address: '123 Main Street, New York, NY',
-                        postcode: '10001',
-                        latitude: 40.7128,
-                        longitude: -74.006,
-                        phone: '+1-212-555-0100',
-                        storeType: 'flagship',
-                        openingHours: {
-                            Monday: { open: '09:00', close: '21:00' },
-                            Tuesday: { open: '09:00', close: '21:00' },
-                            Wednesday: { open: '09:00', close: '21:00' },
-                            Thursday: { open: '09:00', close: '21:00' },
-                            Friday: { open: '09:00', close: '22:00' },
-                            Saturday: { open: '10:00', close: '22:00' },
-                            Sunday: { open: '11:00', close: '20:00' },
-                        },
-                        services: ['Free Wi-Fi', 'Restrooms', 'Parking', 'Cafe'],
-                    },
-                    {
-                        id: '2',
-                        name: 'Midtown Express Store',
-                        address: '456 Park Avenue, New York, NY',
-                        postcode: '10022',
-                        latitude: 40.7614,
-                        longitude: -73.9776,
-                        phone: '+1-212-555-0101',
-                        storeType: 'express',
-                        openingHours: {
-                            Monday: { open: '08:00', close: '20:00' },
-                            Tuesday: { open: '08:00', close: '20:00' },
-                            Wednesday: { open: '08:00', close: '20:00' },
-                            Thursday: { open: '08:00', close: '20:00' },
-                            Friday: { open: '08:00', close: '20:00' },
-                            Saturday: { open: '09:00', close: '18:00' },
-                            Sunday: { open: '10:00', close: '18:00' },
-                        },
-                        services: ['Free Wi-Fi', 'ATM'],
-                    },
-                    {
-                        id: '3',
-                        name: 'Upper East Side Standard Store',
-                        address: '789 Lexington Avenue, New York, NY',
-                        postcode: '10065',
-                        latitude: 40.7689,
-                        longitude: -73.9642,
-                        phone: '+1-212-555-0102',
-                        storeType: 'standard',
-                        openingHours: {
-                            Monday: { open: '09:00', close: '19:00' },
-                            Tuesday: { open: '09:00', close: '19:00' },
-                            Wednesday: { open: '09:00', close: '19:00' },
-                            Thursday: { open: '09:00', close: '19:00' },
-                            Friday: { open: '09:00', close: '20:00' },
-                            Saturday: { open: '10:00', close: '20:00' },
-                            Sunday: { open: '11:00', close: '18:00' },
-                        },
-                        services: ['Restrooms', 'Parking', 'Cafe', 'Personal Shopping'],
-                    },
-                    {
-                        id: '4',
-                        name: 'Queens Regional Store',
-                        address: '321 Main Street, Queens, NY',
-                        postcode: '11375',
-                        latitude: 40.7282,
-                        longitude: -73.7949,
-                        phone: '+1-718-555-0103',
-                        storeType: 'standard',
-                        openingHours: {
-                            Monday: { open: '10:00', close: '20:00' },
-                            Tuesday: { open: '10:00', close: '20:00' },
-                            Wednesday: { open: '10:00', close: '20:00' },
-                            Thursday: { open: '10:00', close: '20:00' },
-                            Friday: { open: '10:00', close: '21:00' },
-                            Saturday: { open: '10:00', close: '21:00' },
-                            Sunday: { open: '11:00', close: '19:00' },
-                        },
-                        services: ['Free Wi-Fi', 'Restrooms', 'Parking', 'Cafe', 'Play Area'],
-                    },
-                    {
-                        id: '5',
-                        name: 'Brooklyn Express Store',
-                        address: '555 Flatbush Avenue, Brooklyn, NY',
-                        postcode: '11217',
-                        latitude: 40.6782,
-                        longitude: -73.979,
-                        phone: '+1-718-555-0104',
-                        storeType: 'express',
-                        openingHours: {
-                            Monday: { open: '08:00', close: '22:00' },
-                            Tuesday: { open: '08:00', close: '22:00' },
-                            Wednesday: { open: '08:00', close: '22:00' },
-                            Thursday: { open: '08:00', close: '22:00' },
-                            Friday: { open: '08:00', close: '23:00' },
-                            Saturday: { open: '09:00', close: '23:00' },
-                            Sunday: { open: '10:00', close: '21:00' },
-                        },
-                        services: ['Free Wi-Fi', 'ATM', 'Restrooms'],
-                    },
-                    {
-                        id: '6',
-                        name: 'Bronx Community Store',
-                        address: '888 Grand Concourse, Bronx, NY',
-                        postcode: '10451',
-                        latitude: 40.8216,
-                        longitude: -73.9247,
-                        phone: '+1-718-555-0105',
-                        storeType: 'standard',
-                        openingHours: {
-                            Monday: { open: '09:00', close: '19:00' },
-                            Tuesday: { open: '09:00', close: '19:00' },
-                            Wednesday: { open: '09:00', close: '19:00' },
-                            Thursday: { open: '09:00', close: '19:00' },
-                            Friday: { open: '09:00', close: '20:00' },
-                            Saturday: { open: '10:00', close: '20:00' },
-                            Sunday: { open: '11:00', close: '18:00' },
-                        },
-                        services: ['Restrooms', 'Parking', 'Community Events'],
-                    },
-                ];
-            }
-
-            // Validate Postcode Format
-            validatePostcode(postcode) {
-                const patterns = {
-                    US: /^\d{5}(?:-\d{4})?$/,
-                    UK: /^[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}$/i,
-                    CA: /^[A-Z]\d[A-Z]\s?\d[A-Z]\d$/i,
-                    AU: /^\d{4}$/,
-                    IN: /^\d{6}$/,
-                    DE: /^\d{5}$/,
-                    FR: /^\d{5}$/,
-                    JP: /^\d{3}-\d{4}$/,
-                };
-
-                return Object.values(patterns).some(pattern => pattern.test(postcode.trim()));
-            }
-
-            // Geocode Postcode (Mock Implementation)
-            async geocodePostcode(postcode) {
-                try {
-                    // Check cache
-                    const cached = sessionStorage.getItem(`geocode_${postcode}`);
-                    if (cached) {
-                        return JSON.parse(cached);
-                    }
-
-                    // Simulate API call with mock data
-                    const geocodeMaps = {
-                        '10001': { lat: 40.7128, lng: -74.006, city: 'New York' },
-                        '10022': { lat: 40.7614, lng: -73.9776, city: 'New York' },
-                        '10065': { lat: 40.7689, lng: -73.9642, city: 'New York' },
-                        '11375': { lat: 40.7282, lng: -73.7949, city: 'Queens' },
-                        '11217': { lat: 40.6782, lng: -73.979, city: 'Brooklyn' },
-                        '10451': { lat: 40.8216, lng: -73.9247, city: 'Bronx' },
-                    };
-
-                    let coordinates = geocodeMaps[postcode.trim()];
-                    if (!coordinates) {
-                        // For other postcodes, use a default location
-                        coordinates = {
-                            lat: 40.7128 + (Math.random() - 0.5) * 0.5,
-                            lng: -74.006 + (Math.random() - 0.5) * 0.5,
-                            city: 'New York Area',
-                        };
-                    }
-
-                    // Cache the result
-                    sessionStorage.setItem(`geocode_${postcode}`, JSON.stringify(coordinates));
-                    return coordinates;
-                } catch (error) {
-                    this.showError('Failed to geocode postcode. Please try again.');
-                    return null;
-                }
-            }
-
-            // Handle Search
-            async handleSearch(e) {
+            handleSearch(e) {
                 e.preventDefault();
-
                 const postcode = document.getElementById('postcodeInput').value.trim();
-
                 if (!postcode) {
-                    this.showError('Please enter a postcode');
+                    document.getElementById('errorMessage').textContent = 'Please enter a postcode';
+                    document.getElementById('errorMessage').style.display = 'block';
                     return;
                 }
+                this.filteredStores = this.stores.filter(s => s.postcode.includes(postcode.toUpperCase()));
+                this.displayResults();
+            }
 
-                if (!this.validatePostcode(postcode)) {
-                    this.showError('Invalid postcode format. Please check and try again.');
-                    return;
+            filterByContinent(continent) {
+                this.selectedContinent = continent;
+                if (continent === 'all') {
+                    this.filteredStores = this.stores;
+                } else {
+                    this.filteredStores = this.stores.filter(s => s.continent === continent);
                 }
-
-                this.showLoading();
-
-                const coordinates = await this.geocodePostcode(postcode);
-                if (!coordinates) return;
-
-                this.userLocation = coordinates;
-                this.addRecentSearch(postcode);
-
-                // Calculate distances
-                this.calculateDistances();
-                this.applyFilters();
-
-                this.showSuccess(`Found ${this.filteredStores.length} stores near ${postcode}`);
-                this.analytics.totalSearches++;
-                this.saveLocalData();
-                this.updateAnalytics();
+                this.displayResults();
             }
 
-            // Use Current Location
-            useCurrentLocation() {
-                if (!navigator.geolocation) {
-                    this.showError('Geolocation is not supported by your browser');
-                    return;
-                }
-
-                this.showLoading();
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        this.userLocation = {
-                            lat: position.coords.latitude,
-                            lng: position.coords.longitude,
-                        };
-                        document.getElementById('postcodeInput').value = 'Current Location';
-                        this.calculateDistances();
-                        this.applyFilters();
-                        this.showSuccess('Loaded your location');
-                        this.analytics.totalSearches++;
-                        this.saveLocalData();
-                        this.updateAnalytics();
-                    },
-                    () => {
-                        this.showError('Location permission denied or unavailable');
-                    }
-                );
-            }
-
-            // Calculate Distances (Haversine Formula)
-            calculateDistances() {
-                if (!this.userLocation) return;
-
-                this.stores.forEach(store => {
-                    const distance = this.haversineDistance(
-                        this.userLocation.lat,
-                        this.userLocation.lng,
-                        store.latitude,
-                        store.longitude
-                    );
-                    store.distance = distance;
-                    store.isOpen = this.isStoreOpen(store);
-                });
-
-                this.stores.sort((a, b) => (a.distance || 0) - (b.distance || 0));
-            }
-
-            // Haversine Distance Formula
-            haversineDistance(lat1, lon1, lat2, lon2) {
-                const R = 6371; // Earth's radius in km
-                const dLat = (lat2 - lat1) * (Math.PI / 180);
-                const dLon = (lon2 - lon1) * (Math.PI / 180);
-                const a =
-                    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
-                    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-                return Math.round(R * c * 10) / 10;
-            }
-
-            // Check if Store is Open
-            isStoreOpen(store) {
-                const now = new Date();
-                const day = now.toLocaleDateString('en-US', { weekday: 'long' });
-                const currentTime = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
-
-                const hours = store.openingHours[day];
-                if (!hours) return false;
-
-                return currentTime >= hours.open && currentTime <= hours.close;
-            }
-
-            // Apply Filters
-            applyFilters() {
-                if (!this.userLocation) return;
-
-                const radius = parseInt(document.getElementById('radiusSelect').value);
-                const storeType = document.getElementById('storeTypeSelect').value;
-                const openNowOnly = document.getElementById('openNowCheckbox').checked;
-
-                this.filteredStores = this.stores.filter(store => {
-                    const withinRadius = (store.distance || 0) <= radius;
-                    const matchesType = !storeType || store.storeType === storeType;
-                    const isOpen = !openNowOnly || store.isOpen;
-
-                    return withinRadius && matchesType && isOpen;
-                });
-
-                this.renderStores();
-                this.updateMap();
-            }
-
-            // Render Stores List
-            renderStores() {
-                const container = document.getElementById('storesList');
-
+            displayResults() {
+                const container = document.getElementById('storesListContainer');
+                const list = document.getElementById('storesList');
+                
                 if (this.filteredStores.length === 0) {
-                    container.innerHTML = `
-                        <div class="no-results">
-                            <div class="no-results-icon">🚫</div>
-                            <p>No stores found matching your criteria</p>
-                        </div>
-                    `;
-                    document.getElementById('storesCount').textContent = '0 stores found';
-                    return;
-                }
-
-                container.innerHTML = this.filteredStores
-                    .slice(0, 10)
-                    .map(store => `
-                        <div class="store-card ${this.selectedStore?.id === store.id ? 'selected' : ''}" 
-                             data-store-id="${store.id}">
-                            <div class="store-name">${store.name}</div>
-                            <div class="store-distance">📍 ${store.distance} km away</div>
-                            <div class="store-address">${store.address}</div>
-                            <div class="store-meta">
-                                <span class="open-status ${store.isOpen ? 'open' : 'closed'}">
-                                    ${store.isOpen ? 'Open Now' : 'Closed'}
-                                </span>
-                                <span>${store.storeType.charAt(0).toUpperCase() + store.storeType.slice(1)}</span>
-                            </div>
-                            <div class="store-actions">
-                                <button class="action-btn" onclick="storeLocator.selectStore('${store.id}')">View Details</button>
-                                <button class="action-btn" onclick="storeLocator.getDirections('${store.id}')">Directions</button>
-                                <button class="action-btn" onclick="storeLocator.callStore('${store.phone}')">Call</button>
-                            </div>
-                        </div>
-                    `).join('');
-
-                document.getElementById('storesCount').textContent = `${this.filteredStores.length} stores found`;
-            }
-
-            // Select Store
-            selectStore(storeId) {
-                const store = this.stores.find(s => s.id === storeId);
-                if (!store) return;
-
-                this.selectedStore = store;
-                this.analytics.totalViews++;
-                this.saveLocalData();
-                this.updateAnalytics();
-
-                // Render store card highlight
-                if (this.viewMode === 'list') {
-                    this.renderStores();
-                }
-
-                // Open modal with details
-                this.openStoreModal(store);
-
-                // Update map
-                if (this.map) {
-                    this.map.setView([store.latitude, store.longitude], 15);
-                }
-            }
-
-            // Open Store Modal
-            openStoreModal(store) {
-                const container = document.getElementById('storeDetailsContainer');
-
-                const hoursHtml = Object.entries(store.openingHours)
-                    .map(([day, hours]) => `
-                        <div style="display: flex; justify-content: space-between;">
-                            <span>${day}</span>
-                            <span>${hours.open} - ${hours.close}</span>
-                        </div>
-                    `).join('');
-
-                const servicesHtml = store.services
-                    .map(service => `<span class="service-tag">${service}</span>`)
-                    .join('');
-
-                container.innerHTML = `
-                    <div class="store-details">
-                        <h2>${store.name}</h2>
-
-                        <div class="detail-item">
-                            <div class="detail-label">Address</div>
-                            <div class="detail-value">${store.address}</div>
-                        </div>
-
-                        <div class="detail-item">
-                            <div class="detail-label">Phone</div>
-                            <div class="detail-value">${store.phone}</div>
-                        </div>
-
-                        <div class="detail-item">
-                            <div class="detail-label">Distance</div>
-                            <div class="detail-value">${store.distance} km away</div>
-                        </div>
-
-                        <div class="detail-item">
-                            <div class="detail-label">Status</div>
-                            <div class="detail-value">
-                                <span class="open-status ${store.isOpen ? 'open' : 'closed'}">
-                                    ${store.isOpen ? '✅ Open Now' : '❌ Currently Closed'}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="detail-item">
-                            <div class="detail-label">Hours of Operation</div>
-                            <div class="hours-grid">${hoursHtml}</div>
-                        </div>
-
-                        <div class="detail-item">
-                            <div class="detail-label">Available Services</div>
-                            <div class="services-list">${servicesHtml}</div>
-                        </div>
-
-                        <div class="modal-actions">
-                            <button class="modal-btn primary" onclick="storeLocator.getDirections('${store.id}')">
-                                📍 Get Directions
-                            </button>
-                            <button class="modal-btn secondary" onclick="storeLocator.callStore('${store.phone}')">
-                                📞 Call Store
-                            </button>
-                        </div>
-                    </div>
-                `;
-
-                document.getElementById('storeModal').classList.add('open');
-            }
-
-            // Close Modal
-            closeModal() {
-                document.getElementById('storeModal').classList.remove('open');
-            }
-
-            // Get Directions
-            getDirections(storeId) {
-                const store = this.stores.find(s => s.id === storeId);
-                if (!store) return;
-
-                const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${store.latitude},${store.longitude}&destination_place_id=${storeId}`;
-                window.open(mapsUrl, '_blank');
-
-                this.analytics.totalDirections++;
-                this.saveLocalData();
-                this.updateAnalytics();
-
-                this.showSuccess('Opening Google Maps...');
-            }
-
-            // Call Store
-            callStore(phone) {
-                window.location.href = `tel:${phone}`;
-                this.analytics.totalCalls++;
-                this.saveLocalData();
-                this.updateAnalytics();
-            }
-
-            // Switch View
-            switchView(mode) {
-                this.viewMode = mode;
-
-                document.getElementById('listViewContainer').style.display = mode === 'list' ? 'flex' : 'none';
-                document.getElementById('mapViewContainer').style.display = mode === 'map' ? 'block' : 'none';
-
-                document.getElementById('listViewBtn').classList.toggle('active', mode === 'list');
-                document.getElementById('mapViewBtn').classList.toggle('active', mode === 'map');
-
-                if (mode === 'map' && !this.map) {
-                    setTimeout(() => this.initializeMap(), 100);
-                }
-
-                if (mode === 'map') {
-                    this.map?.invalidateSize();
-                }
-            }
-
-            // Initialize Map
-            initializeMap() {
-                const mapContainer = document.getElementById('map');
-                if (!mapContainer || this.map) return;
-
-                const center = this.userLocation || { lat: 40.7128, lng: -74.006 };
-
-                this.map = L.map('map').setView([center.lat, center.lng], 13);
-
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '© OpenStreetMap contributors',
-                    maxZoom: 19,
-                }).addTo(this.map);
-
-                this.updateMap();
-            }
-
-            // Update Map Markers
-            updateMap() {
-                if (!this.map) return;
-
-                // Clear existing markers
-                this.markers.forEach(marker => marker.remove());
-                this.markers = [];
-
-                // Add user location marker
-                if (this.userLocation) {
-                    L.marker([this.userLocation.lat, this.userLocation.lng], {
-                        icon: L.icon({
-                            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-                            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-                            iconSize: [25, 41],
-                            iconAnchor: [12, 41],
-                            popupAnchor: [1, -34],
-                            shadowSize: [41, 41],
-                        }),
-                    })
-                        .bindPopup('Your Location')
-                        .addTo(this.map);
-                }
-
-                // Add store markers
-                this.filteredStores.slice(0, 10).forEach(store => {
-                    const marker = L.marker([store.latitude, store.longitude], {
-                        icon: L.icon({
-                            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-                            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-                            iconSize: [25, 41],
-                            iconAnchor: [12, 41],
-                            popupAnchor: [1, -34],
-                            shadowSize: [41, 41],
-                        }),
-                    })
-                        .bindPopup(`
-                            <strong>${store.name}</strong><br>
-                            ${store.address}<br>
-                            ${store.distance} km away<br>
-                            <button onclick="storeLocator.selectStore('${store.id}')" style="margin-top: 5px;">View Details</button>
-                        `)
-                        .addTo(this.map);
-
-                    this.markers.push(marker);
-                });
-
-                // Fit bounds
-                if (this.filteredStores.length > 0) {
-                    const group = new L.featureGroup(this.markers);
-                    this.map.fitBounds(group.getBounds().pad(0.1));
-                }
-            }
-
-            // Add Recent Search
-            addRecentSearch(postcode) {
-                this.recentSearches = [postcode, ...this.recentSearches.filter(p => p !== postcode)].slice(0, 5);
-                this.updateRecentSearches();
-                this.saveLocalData();
-            }
-
-            // Update Recent Searches UI
-            updateRecentSearches() {
-                const container = document.getElementById('recentSearchesContainer');
-                const buttonsContainer = document.getElementById('recentSearchesButtonsContainer');
-
-                if (this.recentSearches.length === 0) {
                     container.style.display = 'none';
                     return;
                 }
 
-                container.style.display = 'block';
-                buttonsContainer.innerHTML = this.recentSearches
-                    .map(postcode => `
-                        <button type="button" class="recent-search-btn" onclick="storeLocator.loadRecentSearch('${postcode}')">
-                            ${postcode}
-                        </button>
-                    `)
-                    .join('');
-            }
+                container.style.display = 'flex';
+                document.getElementById('storesCount').textContent = this.filteredStores.length;
 
-            // Load Recent Search
-            loadRecentSearch(postcode) {
-                document.getElementById('postcodeInput').value = postcode;
-                document.getElementById('searchForm').dispatchEvent(new Event('submit'));
-            }
-
-            // Update Analytics
-            updateAnalytics() {
-                const section = document.getElementById('analyticsSection');
-                if (this.analytics.totalSearches > 0) {
-                    section.style.display = 'block';
-                }
-
-                document.getElementById('totalSearches').textContent = this.analytics.totalSearches;
-                document.getElementById('totalViews').textContent = this.analytics.totalViews;
-                document.getElementById('totalDirections').textContent = this.analytics.totalDirections;
-                document.getElementById('totalCalls').textContent = this.analytics.totalCalls;
-            }
-
-            // Show/Hide Messages
-            showError(message) {
-                const errorDiv = document.getElementById('errorMessage');
-                errorDiv.textContent = message;
-                errorDiv.style.display = 'block';
-                setTimeout(() => {
-                    errorDiv.style.display = 'none';
-                }, 5000);
-            }
-
-            showSuccess(message) {
-                const successDiv = document.getElementById('successMessage');
-                successDiv.textContent = message;
-                successDiv.style.display = 'block';
-                setTimeout(() => {
-                    successDiv.style.display = 'none';
-                }, 5000);
-            }
-
-            showLoading() {
-                document.getElementById('searchBtn').disabled = true;
-                document.getElementById('searchBtn').textContent = 'Searching...';
+                list.innerHTML = this.filteredStores
+                    .slice(0, 20)
+                    .map(store => `
+                        <div class="store-card">
+                            <div class="store-name">${store.name}</div>
+                            <div class="store-info">📍 ${store.city}, ${store.country}</div>
+                            <div class="store-info">📮 ${store.postcode} | ${store.type} Store</div>
+                            <div class="store-info">📞 ${store.phone}</div>
+                        </div>
+                    `).join('');
             }
         }
 
-        // Initialize App
-        const storeLocator = new StoreLocator();
+        const locator = new GlobalLocator();
     </script>
 </body>
 </html>

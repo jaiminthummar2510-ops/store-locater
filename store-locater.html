@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store Locator - Find Nearest Stores</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places,geometry"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+                sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            animation: slideDown 0.6s ease-out;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Search Section */
+        .search-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            animation: slideUp 0.6s ease-out 0.1s both;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .search-form {
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .postcode-input,
+        .search-btn,
+        .location-btn {
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .postcode-input {
+            flex: 1;
+            border-color: #667eea;
+        }
+
+        .postcode-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            min-width: 120px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .search-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .location-btn {
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            cursor: pointer;
+            padding: 12px 16px;
+            font-size: 1.3em;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .location-btn:hover {
+            background: #f5f7ff;
+        }
+
+        /* Recent Searches */
+        .recent-searches {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .recent-searches span {
+            font-weight: 600;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .recent-search-btn {
+            background: #f0f2f5;
+            border: 1px solid #ddd;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85em;
+            color: #667eea;
+            transition: all 0.3s;
+        }
+
+        .recent-search-btn:hover {
+            background: #e8ebf5;
+            border-color: #667eea;
+        }
+
+        /* Filters */
+        .filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #333;
+            font-size: 0.9em;
+        }
+
+        .filter-group select,
+        .filter-group input[type="checkbox"] {
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 0.95em;
+        }
+
+        .filter-group select {
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        .filter-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .checkbox-wrapper label {
+            margin: 0;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        /* View Toggle */
+        .view-toggle {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .view-toggle button {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .view-toggle button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        /* Results Section */
+        .results-section {
+            animation: slideUp 0.6s ease-out 0.2s both;
+        }
+
+        .map-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            height: 600px;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .stores-list-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            max-height: 600px;
+        }
+
+        .stores-list-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stores-count {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .stores-list {
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .store-card {
+            border-bottom: 1px solid #e0e0e0;
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .store-card:hover {
+            background: #f8f9ff;
+            padding-left: 25px;
+        }
+
+        .store-card.selected {
+            background: #f0f2f5;
+            border-left: 4px solid #667eea;
+        }
+
+        .store-name {
+            font-weight: 600;
+            font-size: 1.05em;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .store-distance {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 0.95em;
+            margin-bottom: 5px;
+        }
+
+        .store-address {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+        }
+
+        .store-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85em;
+            margin-bottom: 8px;
+        }
+
+        .open-status {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .open-status.open {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .open-status.closed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .store-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #e0e0e0;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 600;
+            transition: all 0.3s;
+            color: #667eea;
+        }
+
+        .action-btn:hover {
+            background: #f0f2f5;
+            border-color: #667eea;
+        }
+
+        /* Error & Loading States */
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #f5c6cb;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            25% {
+                transform: translateX(-10px);
+            }
+            75% {
+                transform: translateX(10px);
+            }
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #c3e6cb;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+
+        .no-results-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        /* Store Details Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal.open {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .store-details h2 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .detail-item {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .hours-grid {
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            gap: 10px;
+        }
+
+        .services-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .service-tag {
+            background: #f0f2f5;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            color: #667eea;
+        }
+
+        .modal-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .modal-btn {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .modal-btn.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .modal-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .modal-btn.secondary {
+            background: #f0f2f5;
+            color: #667eea;
+            border: 1px solid #e0e0e0;
+        }
+
+        .modal-btn.secondary:hover {
+            background: #e8ebf5;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .input-group {
+                flex-wrap: wrap;
+            }
+
+            .postcode-input {
+                min-width: 100%;
+            }
+
+            .filters {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .main-content {
+                gap: 15px;
+            }
+
+            .map-container,
+            .stores-list-container {
+                height: 400px;
+            }
+
+            .store-card {
+                padding: 12px 15px;
+            }
+
+            .modal-content {
+                padding: 20px;
+            }
+        }
+
+        /* Analytics Dashboard */
+        .analytics-section {
+            margin-top: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .analytics-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .analytics-card {
+            background: #f8f9ff;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e8ebf5;
+        }
+
+        .analytics-value {
+            font-size: 1.8em;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .analytics-label {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>🗺️ Store Locator</h1>
+            <p>Find the nearest store by postcode or ZIP code</p>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Left Panel: Search & Filters -->
+            <div class="search-section">
+                <form class="search-form" id="searchForm">
+                    <div class="input-group">
+                        <input
+                            type="text"
+                            id="postcodeInput"
+                            placeholder="Enter postcode or ZIP code..."
+                            class="postcode-input"
+                            aria-label="Postcode input"
+                        />
+                        <button type="submit" class="search-btn" id="searchBtn">
+                            Search
+                        </button>
+                        <button type="button" class="location-btn" id="locationBtn" title="Use current location">
+                            📍
+                        </button>
+                    </div>
+
+                    <!-- Recent Searches -->
+                    <div id="recentSearchesContainer" style="display: none;">
+                        <div class="recent-searches">
+                            <span>Recent:</span>
+                            <div id="recentSearchesButtonsContainer"></div>
+                        </div>
+                    </div>
+
+                    <!-- Error Message -->
+                    <div id="errorMessage" class="error-message" style="display: none;"></div>
+
+                    <!-- Success Message -->
+                    <div id="successMessage" class="success-message" style="display: none;"></div>
+                </form>
+
+                <!-- Filters -->
+                <div class="filters">
+                    <div class="filter-group">
+                        <label for="radiusSelect">Search Radius:</label>
+                        <select id="radiusSelect">
+                            <option value="5">5 km</option>
+                            <option value="10" selected>10 km</option>
+                            <option value="25">25 km</option>
+                            <option value="50">50 km</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="storeTypeSelect">Store Type:</label>
+                        <select id="storeTypeSelect">
+                            <option value="">All Types</option>
+                            <option value="flagship">Flagship Store</option>
+                            <option value="standard">Standard Store</option>
+                            <option value="express">Express Store</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" id="openNowCheckbox" />
+                            <label for="openNowCheckbox">Open Now</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- View Toggle -->
+                <div class="view-toggle">
+                    <button id="listViewBtn" class="active">📋 List View</button>
+                    <button id="mapViewBtn">🗺️ Map View</button>
+                </div>
+            </div>
+
+            <!-- Right Panel: Results -->
+            <div class="results-section">
+                <!-- Map Container -->
+                <div id="mapViewContainer" style="display: none;">
+                    <div class="map-container">
+                        <div id="map"></div>
+                    </div>
+                </div>
+
+                <!-- Stores List -->
+                <div id="listViewContainer" class="stores-list-container">
+                    <div class="stores-list-header">
+                        <span>Nearby Stores</span>
+                        <span class="stores-count" id="storesCount">0 stores found</span>
+                    </div>
+                    <div class="stores-list" id="storesList">
+                        <div class="no-results">
+                            <div class="no-results-icon">🔍</div>
+                            <p>Search for a location to see nearby stores</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Section -->
+        <div class="analytics-section" id="analyticsSection" style="display: none;">
+            <div class="analytics-title">📊 Search Analytics</div>
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <div class="analytics-value" id="totalSearches">0</div>
+                    <div class="analytics-label">Total Searches</div>
+                </div>
+                <div class="analytics-card">
+                    <div class="analytics-value" id="totalViews">0</div>
+                    <div class="analytics-label">Store Views</div>
+                </div>
+                <div class="analytics-card">
+                    <div class="analytics-value" id="totalDirections">0</div>
+                    <div class="analytics-label">Directions Requested</div>
+                </div>
+                <div class="analytics-card">
+                    <div class="analytics-value" id="totalCalls">0</div>
+                    <div class="analytics-label">Calls Made</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Store Details Modal -->
+    <div id="storeModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" id="modalClose">&times;</button>
+            <div id="storeDetailsContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // STORE LOCATOR APPLICATION
+        // ==========================================
+
+        class StoreLocator {
+            constructor() {
+                this.userLocation = null;
+                this.stores = [];
+                this.filteredStores = [];
+                this.viewMode = 'list';
+                this.selectedStore = null;
+                this.map = null;
+                this.markers = [];
+                this.recentSearches = [];
+                this.analytics = {
+                    totalSearches: 0,
+                    totalViews: 0,
+                    totalDirections: 0,
+                    totalCalls: 0,
+                };
+
+                this.initializeUI();
+                this.loadLocalData();
+                this.generateMockData();
+            }
+
+            // Initialize UI Event Listeners
+            initializeUI() {
+                // Search
+                document.getElementById('searchForm').addEventListener('submit', (e) => this.handleSearch(e));
+                document.getElementById('locationBtn').addEventListener('click', () => this.useCurrentLocation());
+
+                // Filters
+                document.getElementById('radiusSelect').addEventListener('change', () => this.applyFilters());
+                document.getElementById('storeTypeSelect').addEventListener('change', () => this.applyFilters());
+                document.getElementById('openNowCheckbox').addEventListener('change', () => this.applyFilters());
+
+                // View Toggle
+                document.getElementById('listViewBtn').addEventListener('click', () => this.switchView('list'));
+                document.getElementById('mapViewBtn').addEventListener('click', () => this.switchView('map'));
+
+                // Modal
+                document.getElementById('modalClose').addEventListener('click', () => this.closeModal());
+                document.getElementById('storeModal').addEventListener('click', (e) => {
+                    if (e.target.id === 'storeModal') this.closeModal();
+                });
+            }
+
+            // Load Local Data
+            loadLocalData() {
+                const saved = localStorage.getItem('storeLocatorData');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    this.recentSearches = data.recentSearches || [];
+                    this.analytics = data.analytics || this.analytics;
+                    this.updateRecentSearches();
+                    this.updateAnalytics();
+                }
+            }
+
+            // Save Local Data
+            saveLocalData() {
+                const data = {
+                    recentSearches: this.recentSearches,
+                    analytics: this.analytics,
+                };
+                localStorage.setItem('storeLocatorData', JSON.stringify(data));
+            }
+
+            // Generate Mock Store Data
+            generateMockData() {
+                this.stores = [
+                    {
+                        id: '1',
+                        name: 'Downtown Flagship Store',
+                        address: '123 Main Street, New York, NY',
+                        postcode: '10001',
+                        latitude: 40.7128,
+                        longitude: -74.006,
+                        phone: '+1-212-555-0100',
+                        storeType: 'flagship',
+                        openingHours: {
+                            Monday: { open: '09:00', close: '21:00' },
+                            Tuesday: { open: '09:00', close: '21:00' },
+                            Wednesday: { open: '09:00', close: '21:00' },
+                            Thursday: { open: '09:00', close: '21:00' },
+                            Friday: { open: '09:00', close: '22:00' },
+                            Saturday: { open: '10:00', close: '22:00' },
+                            Sunday: { open: '11:00', close: '20:00' },
+                        },
+                        services: ['Free Wi-Fi', 'Restrooms', 'Parking', 'Cafe'],
+                    },
+                    {
+                        id: '2',
+                        name: 'Midtown Express Store',
+                        address: '456 Park Avenue, New York, NY',
+                        postcode: '10022',
+                        latitude: 40.7614,
+                        longitude: -73.9776,
+                        phone: '+1-212-555-0101',
+                        storeType: 'express',
+                        openingHours: {
+                            Monday: { open: '08:00', close: '20:00' },
+                            Tuesday: { open: '08:00', close: '20:00' },
+                            Wednesday: { open: '08:00', close: '20:00' },
+                            Thursday: { open: '08:00', close: '20:00' },
+                            Friday: { open: '08:00', close: '20:00' },
+                            Saturday: { open: '09:00', close: '18:00' },
+                            Sunday: { open: '10:00', close: '18:00' },
+                        },
+                        services: ['Free Wi-Fi', 'ATM'],
+                    },
+                    {
+                        id: '3',
+                        name: 'Upper East Side Standard Store',
+                        address: '789 Lexington Avenue, New York, NY',
+                        postcode: '10065',
+                        latitude: 40.7689,
+                        longitude: -73.9642,
+                        phone: '+1-212-555-0102',
+                        storeType: 'standard',
+                        openingHours: {
+                            Monday: { open: '09:00', close: '19:00' },
+                            Tuesday: { open: '09:00', close: '19:00' },
+                            Wednesday: { open: '09:00', close: '19:00' },
+                            Thursday: { open: '09:00', close: '19:00' },
+                            Friday: { open: '09:00', close: '20:00' },
+                            Saturday: { open: '10:00', close: '20:00' },
+                            Sunday: { open: '11:00', close: '18:00' },
+                        },
+                        services: ['Restrooms', 'Parking', 'Cafe', 'Personal Shopping'],
+                    },
+                    {
+                        id: '4',
+                        name: 'Queens Regional Store',
+                        address: '321 Main Street, Queens, NY',
+                        postcode: '11375',
+                        latitude: 40.7282,
+                        longitude: -73.7949,
+                        phone: '+1-718-555-0103',
+                        storeType: 'standard',
+                        openingHours: {
+                            Monday: { open: '10:00', close: '20:00' },
+                            Tuesday: { open: '10:00', close: '20:00' },
+                            Wednesday: { open: '10:00', close: '20:00' },
+                            Thursday: { open: '10:00', close: '20:00' },
+                            Friday: { open: '10:00', close: '21:00' },
+                            Saturday: { open: '10:00', close: '21:00' },
+                            Sunday: { open: '11:00', close: '19:00' },
+                        },
+                        services: ['Free Wi-Fi', 'Restrooms', 'Parking', 'Cafe', 'Play Area'],
+                    },
+                    {
+                        id: '5',
+                        name: 'Brooklyn Express Store',
+                        address: '555 Flatbush Avenue, Brooklyn, NY',
+                        postcode: '11217',
+                        latitude: 40.6782,
+                        longitude: -73.979,
+                        phone: '+1-718-555-0104',
+                        storeType: 'express',
+                        openingHours: {
+                            Monday: { open: '08:00', close: '22:00' },
+                            Tuesday: { open: '08:00', close: '22:00' },
+                            Wednesday: { open: '08:00', close: '22:00' },
+                            Thursday: { open: '08:00', close: '22:00' },
+                            Friday: { open: '08:00', close: '23:00' },
+                            Saturday: { open: '09:00', close: '23:00' },
+                            Sunday: { open: '10:00', close: '21:00' },
+                        },
+                        services: ['Free Wi-Fi', 'ATM', 'Restrooms'],
+                    },
+                    {
+                        id: '6',
+                        name: 'Bronx Community Store',
+                        address: '888 Grand Concourse, Bronx, NY',
+                        postcode: '10451',
+                        latitude: 40.8216,
+                        longitude: -73.9247,
+                        phone: '+1-718-555-0105',
+                        storeType: 'standard',
+                        openingHours: {
+                            Monday: { open: '09:00', close: '19:00' },
+                            Tuesday: { open: '09:00', close: '19:00' },
+                            Wednesday: { open: '09:00', close: '19:00' },
+                            Thursday: { open: '09:00', close: '19:00' },
+                            Friday: { open: '09:00', close: '20:00' },
+                            Saturday: { open: '10:00', close: '20:00' },
+                            Sunday: { open: '11:00', close: '18:00' },
+                        },
+                        services: ['Restrooms', 'Parking', 'Community Events'],
+                    },
+                ];
+            }
+
+            // Validate Postcode Format
+            validatePostcode(postcode) {
+                const patterns = {
+                    US: /^\d{5}(?:-\d{4})?$/,
+                    UK: /^[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}$/i,
+                    CA: /^[A-Z]\d[A-Z]\s?\d[A-Z]\d$/i,
+                    AU: /^\d{4}$/,
+                    IN: /^\d{6}$/,
+                    DE: /^\d{5}$/,
+                    FR: /^\d{5}$/,
+                    JP: /^\d{3}-\d{4}$/,
+                };
+
+                return Object.values(patterns).some(pattern => pattern.test(postcode.trim()));
+            }
+
+            // Geocode Postcode (Mock Implementation)
+            async geocodePostcode(postcode) {
+                try {
+                    // Check cache
+                    const cached = sessionStorage.getItem(`geocode_${postcode}`);
+                    if (cached) {
+                        return JSON.parse(cached);
+                    }
+
+                    // Simulate API call with mock data
+                    const geocodeMaps = {
+                        '10001': { lat: 40.7128, lng: -74.006, city: 'New York' },
+                        '10022': { lat: 40.7614, lng: -73.9776, city: 'New York' },
+                        '10065': { lat: 40.7689, lng: -73.9642, city: 'New York' },
+                        '11375': { lat: 40.7282, lng: -73.7949, city: 'Queens' },
+                        '11217': { lat: 40.6782, lng: -73.979, city: 'Brooklyn' },
+                        '10451': { lat: 40.8216, lng: -73.9247, city: 'Bronx' },
+                    };
+
+                    let coordinates = geocodeMaps[postcode.trim()];
+                    if (!coordinates) {
+                        // For other postcodes, use a default location
+                        coordinates = {
+                            lat: 40.7128 + (Math.random() - 0.5) * 0.5,
+                            lng: -74.006 + (Math.random() - 0.5) * 0.5,
+                            city: 'New York Area',
+                        };
+                    }
+
+                    // Cache the result
+                    sessionStorage.setItem(`geocode_${postcode}`, JSON.stringify(coordinates));
+                    return coordinates;
+                } catch (error) {
+                    this.showError('Failed to geocode postcode. Please try again.');
+                    return null;
+                }
+            }
+
+            // Handle Search
+            async handleSearch(e) {
+                e.preventDefault();
+
+                const postcode = document.getElementById('postcodeInput').value.trim();
+
+                if (!postcode) {
+                    this.showError('Please enter a postcode');
+                    return;
+                }
+
+                if (!this.validatePostcode(postcode)) {
+                    this.showError('Invalid postcode format. Please check and try again.');
+                    return;
+                }
+
+                this.showLoading();
+
+                const coordinates = await this.geocodePostcode(postcode);
+                if (!coordinates) return;
+
+                this.userLocation = coordinates;
+                this.addRecentSearch(postcode);
+
+                // Calculate distances
+                this.calculateDistances();
+                this.applyFilters();
+
+                this.showSuccess(`Found ${this.filteredStores.length} stores near ${postcode}`);
+                this.analytics.totalSearches++;
+                this.saveLocalData();
+                this.updateAnalytics();
+            }
+
+            // Use Current Location
+            useCurrentLocation() {
+                if (!navigator.geolocation) {
+                    this.showError('Geolocation is not supported by your browser');
+                    return;
+                }
+
+                this.showLoading();
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        this.userLocation = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude,
+                        };
+                        document.getElementById('postcodeInput').value = 'Current Location';
+                        this.calculateDistances();
+                        this.applyFilters();
+                        this.showSuccess('Loaded your location');
+                        this.analytics.totalSearches++;
+                        this.saveLocalData();
+                        this.updateAnalytics();
+                    },
+                    () => {
+                        this.showError('Location permission denied or unavailable');
+                    }
+                );
+            }
+
+            // Calculate Distances (Haversine Formula)
+            calculateDistances() {
+                if (!this.userLocation) return;
+
+                this.stores.forEach(store => {
+                    const distance = this.haversineDistance(
+                        this.userLocation.lat,
+                        this.userLocation.lng,
+                        store.latitude,
+                        store.longitude
+                    );
+                    store.distance = distance;
+                    store.isOpen = this.isStoreOpen(store);
+                });
+
+                this.stores.sort((a, b) => (a.distance || 0) - (b.distance || 0));
+            }
+
+            // Haversine Distance Formula
+            haversineDistance(lat1, lon1, lat2, lon2) {
+                const R = 6371; // Earth's radius in km
+                const dLat = (lat2 - lat1) * (Math.PI / 180);
+                const dLon = (lon2 - lon1) * (Math.PI / 180);
+                const a =
+                    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+                    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                return Math.round(R * c * 10) / 10;
+            }
+
+            // Check if Store is Open
+            isStoreOpen(store) {
+                const now = new Date();
+                const day = now.toLocaleDateString('en-US', { weekday: 'long' });
+                const currentTime = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+
+                const hours = store.openingHours[day];
+                if (!hours) return false;
+
+                return currentTime >= hours.open && currentTime <= hours.close;
+            }
+
+            // Apply Filters
+            applyFilters() {
+                if (!this.userLocation) return;
+
+                const radius = parseInt(document.getElementById('radiusSelect').value);
+                const storeType = document.getElementById('storeTypeSelect').value;
+                const openNowOnly = document.getElementById('openNowCheckbox').checked;
+
+                this.filteredStores = this.stores.filter(store => {
+                    const withinRadius = (store.distance || 0) <= radius;
+                    const matchesType = !storeType || store.storeType === storeType;
+                    const isOpen = !openNowOnly || store.isOpen;
+
+                    return withinRadius && matchesType && isOpen;
+                });
+
+                this.renderStores();
+                this.updateMap();
+            }
+
+            // Render Stores List
+            renderStores() {
+                const container = document.getElementById('storesList');
+
+                if (this.filteredStores.length === 0) {
+                    container.innerHTML = `
+                        <div class="no-results">
+                            <div class="no-results-icon">🚫</div>
+                            <p>No stores found matching your criteria</p>
+                        </div>
+                    `;
+                    document.getElementById('storesCount').textContent = '0 stores found';
+                    return;
+                }
+
+                container.innerHTML = this.filteredStores
+                    .slice(0, 10)
+                    .map(store => `
+                        <div class="store-card ${this.selectedStore?.id === store.id ? 'selected' : ''}" 
+                             data-store-id="${store.id}">
+                            <div class="store-name">${store.name}</div>
+                            <div class="store-distance">📍 ${store.distance} km away</div>
+                            <div class="store-address">${store.address}</div>
+                            <div class="store-meta">
+                                <span class="open-status ${store.isOpen ? 'open' : 'closed'}">
+                                    ${store.isOpen ? 'Open Now' : 'Closed'}
+                                </span>
+                                <span>${store.storeType.charAt(0).toUpperCase() + store.storeType.slice(1)}</span>
+                            </div>
+                            <div class="store-actions">
+                                <button class="action-btn" onclick="storeLocator.selectStore('${store.id}')">View Details</button>
+                                <button class="action-btn" onclick="storeLocator.getDirections('${store.id}')">Directions</button>
+                                <button class="action-btn" onclick="storeLocator.callStore('${store.phone}')">Call</button>
+                            </div>
+                        </div>
+                    `).join('');
+
+                document.getElementById('storesCount').textContent = `${this.filteredStores.length} stores found`;
+            }
+
+            // Select Store
+            selectStore(storeId) {
+                const store = this.stores.find(s => s.id === storeId);
+                if (!store) return;
+
+                this.selectedStore = store;
+                this.analytics.totalViews++;
+                this.saveLocalData();
+                this.updateAnalytics();
+
+                // Render store card highlight
+                if (this.viewMode === 'list') {
+                    this.renderStores();
+                }
+
+                // Open modal with details
+                this.openStoreModal(store);
+
+                // Update map
+                if (this.map) {
+                    this.map.setView([store.latitude, store.longitude], 15);
+                }
+            }
+
+            // Open Store Modal
+            openStoreModal(store) {
+                const container = document.getElementById('storeDetailsContainer');
+
+                const hoursHtml = Object.entries(store.openingHours)
+                    .map(([day, hours]) => `
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>${day}</span>
+                            <span>${hours.open} - ${hours.close}</span>
+                        </div>
+                    `).join('');
+
+                const servicesHtml = store.services
+                    .map(service => `<span class="service-tag">${service}</span>`)
+                    .join('');
+
+                container.innerHTML = `
+                    <div class="store-details">
+                        <h2>${store.name}</h2>
+
+                        <div class="detail-item">
+                            <div class="detail-label">Address</div>
+                            <div class="detail-value">${store.address}</div>
+                        </div>
+
+                        <div class="detail-item">
+                            <div class="detail-label">Phone</div>
+                            <div class="detail-value">${store.phone}</div>
+                        </div>
+
+                        <div class="detail-item">
+                            <div class="detail-label">Distance</div>
+                            <div class="detail-value">${store.distance} km away</div>
+                        </div>
+
+                        <div class="detail-item">
+                            <div class="detail-label">Status</div>
+                            <div class="detail-value">
+                                <span class="open-status ${store.isOpen ? 'open' : 'closed'}">
+                                    ${store.isOpen ? '✅ Open Now' : '❌ Currently Closed'}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="detail-item">
+                            <div class="detail-label">Hours of Operation</div>
+                            <div class="hours-grid">${hoursHtml}</div>
+                        </div>
+
+                        <div class="detail-item">
+                            <div class="detail-label">Available Services</div>
+                            <div class="services-list">${servicesHtml}</div>
+                        </div>
+
+                        <div class="modal-actions">
+                            <button class="modal-btn primary" onclick="storeLocator.getDirections('${store.id}')">
+                                📍 Get Directions
+                            </button>
+                            <button class="modal-btn secondary" onclick="storeLocator.callStore('${store.phone}')">
+                                📞 Call Store
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('storeModal').classList.add('open');
+            }
+
+            // Close Modal
+            closeModal() {
+                document.getElementById('storeModal').classList.remove('open');
+            }
+
+            // Get Directions
+            getDirections(storeId) {
+                const store = this.stores.find(s => s.id === storeId);
+                if (!store) return;
+
+                const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${store.latitude},${store.longitude}&destination_place_id=${storeId}`;
+                window.open(mapsUrl, '_blank');
+
+                this.analytics.totalDirections++;
+                this.saveLocalData();
+                this.updateAnalytics();
+
+                this.showSuccess('Opening Google Maps...');
+            }
+
+            // Call Store
+            callStore(phone) {
+                window.location.href = `tel:${phone}`;
+                this.analytics.totalCalls++;
+                this.saveLocalData();
+                this.updateAnalytics();
+            }
+
+            // Switch View
+            switchView(mode) {
+                this.viewMode = mode;
+
+                document.getElementById('listViewContainer').style.display = mode === 'list' ? 'flex' : 'none';
+                document.getElementById('mapViewContainer').style.display = mode === 'map' ? 'block' : 'none';
+
+                document.getElementById('listViewBtn').classList.toggle('active', mode === 'list');
+                document.getElementById('mapViewBtn').classList.toggle('active', mode === 'map');
+
+                if (mode === 'map' && !this.map) {
+                    setTimeout(() => this.initializeMap(), 100);
+                }
+
+                if (mode === 'map') {
+                    this.map?.invalidateSize();
+                }
+            }
+
+            // Initialize Map
+            initializeMap() {
+                const mapContainer = document.getElementById('map');
+                if (!mapContainer || this.map) return;
+
+                const center = this.userLocation || { lat: 40.7128, lng: -74.006 };
+
+                this.map = L.map('map').setView([center.lat, center.lng], 13);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors',
+                    maxZoom: 19,
+                }).addTo(this.map);
+
+                this.updateMap();
+            }
+
+            // Update Map Markers
+            updateMap() {
+                if (!this.map) return;
+
+                // Clear existing markers
+                this.markers.forEach(marker => marker.remove());
+                this.markers = [];
+
+                // Add user location marker
+                if (this.userLocation) {
+                    L.marker([this.userLocation.lat, this.userLocation.lng], {
+                        icon: L.icon({
+                            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                            iconSize: [25, 41],
+                            iconAnchor: [12, 41],
+                            popupAnchor: [1, -34],
+                            shadowSize: [41, 41],
+                        }),
+                    })
+                        .bindPopup('Your Location')
+                        .addTo(this.map);
+                }
+
+                // Add store markers
+                this.filteredStores.slice(0, 10).forEach(store => {
+                    const marker = L.marker([store.latitude, store.longitude], {
+                        icon: L.icon({
+                            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                            iconSize: [25, 41],
+                            iconAnchor: [12, 41],
+                            popupAnchor: [1, -34],
+                            shadowSize: [41, 41],
+                        }),
+                    })
+                        .bindPopup(`
+                            <strong>${store.name}</strong><br>
+                            ${store.address}<br>
+                            ${store.distance} km away<br>
+                            <button onclick="storeLocator.selectStore('${store.id}')" style="margin-top: 5px;">View Details</button>
+                        `)
+                        .addTo(this.map);
+
+                    this.markers.push(marker);
+                });
+
+                // Fit bounds
+                if (this.filteredStores.length > 0) {
+                    const group = new L.featureGroup(this.markers);
+                    this.map.fitBounds(group.getBounds().pad(0.1));
+                }
+            }
+
+            // Add Recent Search
+            addRecentSearch(postcode) {
+                this.recentSearches = [postcode, ...this.recentSearches.filter(p => p !== postcode)].slice(0, 5);
+                this.updateRecentSearches();
+                this.saveLocalData();
+            }
+
+            // Update Recent Searches UI
+            updateRecentSearches() {
+                const container = document.getElementById('recentSearchesContainer');
+                const buttonsContainer = document.getElementById('recentSearchesButtonsContainer');
+
+                if (this.recentSearches.length === 0) {
+                    container.style.display = 'none';
+                    return;
+                }
+
+                container.style.display = 'block';
+                buttonsContainer.innerHTML = this.recentSearches
+                    .map(postcode => `
+                        <button type="button" class="recent-search-btn" onclick="storeLocator.loadRecentSearch('${postcode}')">
+                            ${postcode}
+                        </button>
+                    `)
+                    .join('');
+            }
+
+            // Load Recent Search
+            loadRecentSearch(postcode) {
+                document.getElementById('postcodeInput').value = postcode;
+                document.getElementById('searchForm').dispatchEvent(new Event('submit'));
+            }
+
+            // Update Analytics
+            updateAnalytics() {
+                const section = document.getElementById('analyticsSection');
+                if (this.analytics.totalSearches > 0) {
+                    section.style.display = 'block';
+                }
+
+                document.getElementById('totalSearches').textContent = this.analytics.totalSearches;
+                document.getElementById('totalViews').textContent = this.analytics.totalViews;
+                document.getElementById('totalDirections').textContent = this.analytics.totalDirections;
+                document.getElementById('totalCalls').textContent = this.analytics.totalCalls;
+            }
+
+            // Show/Hide Messages
+            showError(message) {
+                const errorDiv = document.getElementById('errorMessage');
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                }, 5000);
+            }
+
+            showSuccess(message) {
+                const successDiv = document.getElementById('successMessage');
+                successDiv.textContent = message;
+                successDiv.style.display = 'block';
+                setTimeout(() => {
+                    successDiv.style.display = 'none';
+                }, 5000);
+            }
+
+            showLoading() {
+                document.getElementById('searchBtn').disabled = true;
+                document.getElementById('searchBtn').textContent = 'Searching...';
+            }
+        }
+
+        // Initialize App
+        const storeLocator = new StoreLocator();
+    </script>
+</body>
+</html>
